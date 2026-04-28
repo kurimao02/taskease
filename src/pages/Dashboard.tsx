@@ -96,7 +96,7 @@ export function Dashboard() {
       draggable={isBoard}
       onDragStart={(e) => handleDragStart(e, task.id)}
       className={cn(
-        "group flex items-start gap-4 p-5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-2xl shadow-sm hover:shadow-md dark:hover:shadow-gray-900/50 transition-all cursor-pointer",
+        "group flex items-start gap-4 p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/50 rounded-2xl shadow-sm hover:shadow-md dark:hover:shadow-zinc-900/50 transition-all cursor-pointer",
         isBoard && "active:cursor-grabbing cursor-grab flex-col gap-3"
       )}
       onClick={() => handleEditTask(task)}
@@ -214,13 +214,13 @@ export function Dashboard() {
               key={status}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, status)}
-              className="bg-gray-50/50 dark:bg-gray-900/20 p-4 rounded-3xl border border-gray-200/50 dark:border-gray-800 flex flex-col min-h-[500px]"
+              className="bg-zinc-50/50 dark:bg-zinc-900/20 p-4 rounded-3xl border border-zinc-200/50 dark:border-zinc-800 flex flex-col min-h-[500px]"
             >
               <div className="flex items-center justify-between mb-4 px-2">
                 <h3 className="font-semibold text-gray-900 dark:text-white capitalize">
                   {status.replace('-', ' ')}
                 </h3>
-                <span className="bg-white dark:bg-gray-800 text-gray-500 py-1 px-2.5 rounded-full text-xs font-medium shadow-sm">
+                <span className="bg-white dark:bg-zinc-800 text-gray-500 py-1 px-2.5 rounded-full text-xs font-medium shadow-sm">
                   {filteredTasks.filter(t => t.status === status || (status === 'todo' && !t.status && !t.completed) || (status === 'done' && t.completed && t.status !== 'in-progress')).length}
                 </span>
               </div>
@@ -258,12 +258,12 @@ export function Dashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-200 dark:border-gray-700/50 rounded-3xl">
-                  <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-900/50 border border-dashed border-zinc-200 dark:border-zinc-800/50 rounded-3xl">
+                  <div className="w-12 h-12 bg-white dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
                     <CheckCircle2 className="text-emerald-500" size={24} />
                   </div>
-                  <h3 className="text-gray-900 dark:text-gray-100 font-medium">You're all caught up!</h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">No more tasks due today.</p>
+                  <h3 className="text-zinc-900 dark:text-zinc-100 font-medium">You're all caught up!</h3>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">No more tasks due today.</p>
                 </div>
               )}
             </section>
@@ -283,8 +283,8 @@ export function Dashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-200 dark:border-gray-700/50 rounded-3xl">
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">No upcoming tasks for this week.</p>
+                <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-900/50 border border-dashed border-zinc-200 dark:border-zinc-800/50 rounded-3xl">
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm">No upcoming tasks for this week.</p>
                 </div>
               )}
             </section>
@@ -292,11 +292,11 @@ export function Dashboard() {
 
           {/* Right Column: Progress */}
           <div className="space-y-8">
-            <section className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700/50 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-8">Weekly Progress</h2>
+            <section className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800/50 shadow-sm">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-8">Weekly Progress</h2>
               
               <div className="flex items-center justify-center mb-10 relative">
-                <div className="w-36 h-36 rounded-full border-[10px] border-gray-50 dark:border-gray-700/50 flex items-center justify-center relative shadow-inner">
+                <div className="w-36 h-36 rounded-full border-[10px] border-zinc-50 dark:border-zinc-800/50 flex items-center justify-center relative shadow-inner">
                   <svg className="absolute inset-0 w-full h-full transform -rotate-90">
                     <circle
                       cx="72"

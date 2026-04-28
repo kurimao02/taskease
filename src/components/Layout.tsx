@@ -33,9 +33,13 @@ export function Layout({ user }: LayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col md:flex-row font-sans text-gray-900 dark:text-gray-100 transition-colors duration-200">
+    <div className="flex flex-col md:flex-row font-sans transition-colors duration-200 min-h-screen relative overflow-x-hidden">
+      {/* Subtle modern background glow */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-[120px] pointer-events-none -z-10" />
+      
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 sticky top-0 z-20 transition-colors duration-200">
+      <div className="md:hidden flex items-center justify-between bg-white dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 p-4 sticky top-0 z-20 transition-colors duration-200">
+
         <div className="flex items-center gap-2">
           <NavLink to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm">
@@ -99,10 +103,10 @@ export function Layout({ user }: LayoutProps) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed md:sticky top-0 left-0 z-10 h-screen w-64 pt-[72px] md:pt-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 ease-in-out",
+        "fixed md:sticky top-0 left-0 z-10 h-screen w-64 pt-[72px] md:pt-0 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800/50 flex flex-col transition-all duration-300 ease-in-out",
         isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
       )}>
-        <div className="hidden md:flex flex-col border-b border-gray-100 dark:border-gray-700">
+        <div className="hidden md:flex flex-col border-b border-zinc-200 dark:border-zinc-800/50">
           <NavLink to="/" className="flex items-center gap-3 p-6 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0">
               <CheckSquare size={18} strokeWidth={2.5} />
@@ -168,7 +172,7 @@ export function Layout({ user }: LayoutProps) {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Desktop Header */}
-        <header className="hidden md:flex items-center justify-end px-8 py-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 transition-colors duration-200">
+        <header className="hidden md:flex items-center justify-end px-8 py-4 bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800/50 sticky top-0 z-10 transition-colors duration-200">
           <div className="flex items-center gap-4">
             <button onClick={toggleTheme} className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}

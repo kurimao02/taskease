@@ -128,9 +128,9 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 dark:bg-gray-900/80 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl w-full max-w-lg my-8 relative flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex-shrink-0 flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-700/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 dark:bg-zinc-950/80 backdrop-blur-md overflow-y-auto">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-3xl shadow-2xl w-full max-w-lg my-8 relative flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex-shrink-0 flex items-center justify-between px-6 py-5 border-b border-zinc-100 dark:border-zinc-800/50">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">
             {taskToEdit ? 'Edit Task' : 'Add New Task'}
           </h2>
