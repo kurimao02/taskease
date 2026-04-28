@@ -16,6 +16,9 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
   const updateTask = useTaskStore(state => state.updateTask);
   const deleteTask = useTaskStore(state => state.deleteTask);
 
+  const tasks = useTaskStore(state => state.tasks);
+  const liveTask = taskToEdit ? tasks.find(t => t.id === taskToEdit.id) : undefined;
+  
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
   const [dueDate, setDueDate] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
@@ -26,9 +29,11 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
   const [assignedTo, setAssignedTo] = useState('');
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-  const [comments, setComments] = useState<TaskComment[]>([]);
   const [newComment, setNewComment] = useState('');
   
+  // Use comments directly from the live task from the store to ensure real-time updates
+  const displayComments = liveTask?.comments || [];
+
   const groups = useTaskStore(state => state.groups);
 
   useEffect(() => {
@@ -42,7 +47,6 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
       setGroupId(taskToEdit.groupId || '');
       setAssignedTo(taskToEdit.assignedTo || '');
       setSubtasks(taskToEdit.subtasks || []);
-      setComments(taskToEdit.comments || []);
     } else {
       setTitle('');
       setSubject('');
@@ -53,7 +57,6 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
       setGroupId('');
       setAssignedTo('');
       setSubtasks([]);
-      setComments([]);
       setNewComment('');
     }
   }, [taskToEdit, isOpen]);
@@ -87,13 +90,12 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
       createdAt: new Date().toISOString()
     };
     
-    const updatedComments = [...comments, newCommentObj];
-    setComments(updatedComments);
+    const updatedComments = [...displayComments, newCommentObj];
     setNewComment('');
     
     // Auto-save the comment immediately if it's an existing task
-    if (taskToEdit) {
-      updateTask(taskToEdit.id, { comments: updatedComments });
+    if (liveTask) {
+      updateTask(liveTask.id, { comments: updatedComments });
     }
   };
 
@@ -113,7 +115,7 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
       groupId,
       assignedTo: assignedTo || null,
       subtasks,
-      comments,
+      comments: displayComments,
       completed: isCompleted
     };
 
@@ -299,10 +301,10 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
               </h3>
               
               <div className="space-y-4 mb-4">
-                {comments.length === 0 ? (
+                {displayComments.length === 0 ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400 italic">No comments yet. Start the discussion!</p>
                 ) : (
-                  comments.map((comment) => (
+                  displayComments.map((comment) => (
                     <div key={comment.id} className="bg-gray-50 dark:bg-gray-900/40 p-3 rounded-xl">
                       <div className="flex justify-between items-start mb-1">
                         <span className="text-xs font-semibold text-gray-900 dark:text-gray-200">

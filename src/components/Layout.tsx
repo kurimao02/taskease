@@ -37,10 +37,12 @@ export function Layout({ user }: LayoutProps) {
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 sticky top-0 z-20 transition-colors duration-200">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm">
-            <CheckSquare size={18} strokeWidth={2.5} />
-          </div>
-          <span className="font-bold text-xl tracking-tight">TaskEase</span>
+          <NavLink to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm">
+              <CheckSquare size={18} strokeWidth={2.5} />
+            </div>
+            <span className="font-bold text-xl tracking-tight">TaskEase</span>
+          </NavLink>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={toggleTheme} className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
@@ -100,11 +102,13 @@ export function Layout({ user }: LayoutProps) {
         "fixed md:sticky top-0 left-0 z-10 h-screen w-64 pt-[72px] md:pt-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 ease-in-out",
         isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
       )}>
-        <div className="hidden md:flex items-center gap-3 p-6 border-b border-gray-100 dark:border-gray-700">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm">
-            <CheckSquare size={18} strokeWidth={2.5} />
-          </div>
-          <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">TaskEase</span>
+        <div className="hidden md:flex flex-col border-b border-gray-100 dark:border-gray-700">
+          <NavLink to="/" className="flex items-center gap-3 p-6 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0">
+              <CheckSquare size={18} strokeWidth={2.5} />
+            </div>
+            <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">TaskEase</span>
+          </NavLink>
         </div>
 
         <nav className="flex-1 px-4 py-8 space-y-1.5 overflow-y-auto custom-scrollbar">

@@ -197,11 +197,26 @@ export function Groups() {
                   
                   <div className="space-y-2">
                     {group.memberEmails.map((email, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
-                          {email.charAt(0).toUpperCase()}
+                      <div key={idx} className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 group/member">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
+                            {email.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="truncate">{email}</span>
                         </div>
-                        <span className="truncate">{email}</span>
+                        {isCreator && email !== auth.currentUser?.email && (
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              if(window.confirm(`Remove ${email} from this group?`)) {
+                                leaveGroup(group.id, email);
+                              }
+                            }}
+                            className="text-xs text-gray-400 hover:text-red-500 opacity-0 group-hover/member:opacity-100 transition-opacity px-2 py-1"
+                          >
+                            Remove
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
