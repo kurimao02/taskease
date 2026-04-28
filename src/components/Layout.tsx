@@ -86,11 +86,19 @@ export function Layout({ user }: LayoutProps) {
           </button>
         </div>
       </div>
+      
+      {/* Mobile Menu Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-gray-900/20 dark:bg-gray-900/50 backdrop-blur-sm z-0 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed md:sticky top-0 left-0 z-10 h-screen w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 ease-in-out",
-        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        "fixed md:sticky top-0 left-0 z-10 h-screen w-64 pt-[72px] md:pt-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 ease-in-out",
+        isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
       )}>
         <div className="hidden md:flex items-center gap-3 p-6 border-b border-gray-100 dark:border-gray-700">
           <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm">
