@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "Task": {
+      "title": "Task",
+      "description": "A task created by a user or group.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "subject": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "priority": { "type": "string", "enum": ["high", "medium", "low"] },
+        "notes": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "userId": { "type": "string" },
+        "groupId": { "type": "string" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["title", "subject", "dueDate", "priority", "completed", "userId", "groupId", "createdAt"]
+    },
+    "Group": {
+      "title": "Group",
+      "description": "A group of users sharing tasks.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "memberEmails": { "type": "array", "items": { "type": "string" } },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["name", "description", "memberEmails", "createdBy", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Stores tasks for all users and groups."
+    },
+    "/groups/{groupId}": {
+      "schema": { "$ref": "#/entities/Group" },
+      "description": "Stores groups."
+    }
+  }
+}

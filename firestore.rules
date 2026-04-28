@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isGroupMember(groupId) {
+      let grp = get(/databases/$(database)/documents/groups/$(groupId));
+      return grp != null && request.auth.token.email in grp.data.memberEmails;
+    }
+
+    match /groups/{groupId} {
+      allow read: if isAuthenticated() && request.auth.token.email in resource.data.memberEmails;
+      allow create: if isAuthenticated() && request.auth.token.email in request.resource.data.memberEmails;
+      allow update: if isAuthenticated() && request.auth.token.email in resource.data.memberEmails;
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.createdBy;
+    }
+
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        (resource.data.groupId != "" && isGroupMember(resource.data.groupId))
+      );
+      
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid && 
+        (request.resource.data.groupId == "" || isGroupMember(request.resource.data.groupId));
+        
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        (resource.data.groupId != "" && isGroupMember(resource.data.groupId))
+      );
+      
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        (resource.data.groupId != "" && isGroupMember(resource.data.groupId))
+      );
+    }
+  }
+}

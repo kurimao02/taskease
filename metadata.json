@@ -1,0 +1,5 @@
+{
+  "name": "TaskEase",
+  "description": "A task management web application with dashboard, calendar, and completed tasks views.",
+  "requestFramePermissions": []
+}
