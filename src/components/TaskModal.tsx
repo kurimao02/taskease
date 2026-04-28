@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, Plus, GripVertical } from 'lucide-react';
-import { useTaskStore, Task, Priority, TaskStatus, Subtask } from '@/src/store/useTaskStore';
+import { X, Trash2, Plus, GripVertical, Send, MessageSquare } from 'lucide-react';
+import { useTaskStore, Task, Priority, TaskStatus, Subtask, TaskComment } from '@/src/store/useTaskStore';
 import { format, parseISO } from 'date-fns';
 import { cn } from '../lib/utils';
+import { auth } from '../firebase';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -25,6 +26,8 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
   const [assignedTo, setAssignedTo] = useState('');
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [comments, setComments] = useState<TaskComment[]>([]);
+  const [newComment, setNewComment] = useState('');
   
   const groups = useTaskStore(state => state.groups);
 
@@ -39,6 +42,7 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
       setGroupId(taskToEdit.groupId || '');
       setAssignedTo(taskToEdit.assignedTo || '');
       setSubtasks(taskToEdit.subtasks || []);
+      setComments(taskToEdit.comments || []);
     } else {
       setTitle('');
       setSubject('');
@@ -49,6 +53,8 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
       setGroupId('');
       setAssignedTo('');
       setSubtasks([]);
+      setComments([]);
+      setNewComment('');
     }
   }, [taskToEdit, isOpen]);
 
@@ -72,6 +78,25 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
     setSubtasks(subtasks.filter(st => st.id !== id));
   };
 
+  const handleAddComment = () => {
+    if (!newComment.trim() || !auth.currentUser?.email) return;
+    const newCommentObj: TaskComment = {
+      id: Math.random().toString(36).substring(7),
+      text: newComment.trim(),
+      createdBy: auth.currentUser.email,
+      createdAt: new Date().toISOString()
+    };
+    
+    const updatedComments = [...comments, newCommentObj];
+    setComments(updatedComments);
+    setNewComment('');
+    
+    // Auto-save the comment immediately if it's an existing task
+    if (taskToEdit) {
+      updateTask(taskToEdit.id, { comments: updatedComments });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -88,6 +113,7 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
       groupId,
       assignedTo: assignedTo || null,
       subtasks,
+      comments,
       completed: isCompleted
     };
 
@@ -264,6 +290,53 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
               />
             </div>
           </form>
+
+          {taskToEdit && (
+            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700/50">
+              <h3 className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white mb-4">
+                <MessageSquare size={16} />
+                Task Comments
+              </h3>
+              
+              <div className="space-y-4 mb-4">
+                {comments.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">No comments yet. Start the discussion!</p>
+                ) : (
+                  comments.map((comment) => (
+                    <div key={comment.id} className="bg-gray-50 dark:bg-gray-900/40 p-3 rounded-xl">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-xs font-semibold text-gray-900 dark:text-gray-200">
+                          {comment.createdBy.split('@')[0]}
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          {format(parseISO(comment.createdAt), 'MMM d, h:mm a')}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{comment.text}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddComment())}
+                  className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-shadow text-sm text-gray-900 dark:text-white placeholder-gray-400"
+                  placeholder="Type a comment..."
+                />
+                <button
+                  type="button"
+                  onClick={handleAddComment}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-sm transition-colors flex items-center gap-2"
+                >
+                  <Send size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
         
         <div className="flex-shrink-0 pt-4 px-6 py-5 border-t border-gray-100 dark:border-gray-700/50 flex items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800/80 rounded-b-3xl">

@@ -111,6 +111,12 @@ export function Dashboard() {
               {task.subtasks.filter(st => st.completed).length}/{task.subtasks.length}
             </span>
           )}
+          {task.comments && task.comments.length > 0 && (
+            <span className="flex items-center gap-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"></path></svg>
+              {task.comments.length}
+            </span>
+          )}
           <span className="flex items-center gap-1.5">
             <Clock size={14} />
             {format(parseISO(task.dueDate), 'h:mm a')}

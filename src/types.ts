@@ -7,6 +7,13 @@ export interface Subtask {
   completed: boolean;
 }
 
+export interface TaskComment {
+  id: string;
+  text: string;
+  createdBy: string; // User email
+  createdAt: string; // ISO string
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -15,6 +22,7 @@ export interface Task {
   priority: Priority;
   status?: TaskStatus; // NEW: Track actual progress
   subtasks?: Subtask[]; // NEW: Break down large tasks
+  comments?: TaskComment[]; // NEW: Task discussion
   notes: string;
   completed: boolean; // Keeping for backward compatibility or simple tracking
   userId: string;
