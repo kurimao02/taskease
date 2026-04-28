@@ -3,7 +3,7 @@ import { Task, Group } from '../types';
 import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, arrayUnion, arrayRemove } from 'firebase/firestore';
 
-export type { Task, Group, Priority } from '../types';
+export type { Task, Group, Priority, TaskStatus, Subtask } from '../types';
 
 interface TaskStore {
   tasks: Task[];
@@ -32,6 +32,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     try {
       await addDoc(collection(db, 'tasks'), {
         ...taskData,
+        status: taskData.status || 'todo',
+        subtasks: taskData.subtasks || [],
         completed: false,
         userId: user.uid,
         groupId: taskData.groupId || "",

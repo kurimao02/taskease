@@ -97,6 +97,20 @@ export function Dashboard() {
             <div className={cn("w-2 h-2 rounded-full", priorityDotColors[task.priority])} />
             {task.subject}
           </span>
+          {task.status && task.status !== 'todo' && (
+            <span className={cn(
+              "px-2 py-0.5 rounded-md text-[11px] font-semibold tracking-wider uppercase border",
+              task.status === 'in-progress' ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800/50" : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50"
+            )}>
+              {task.status.replace('-', ' ')}
+            </span>
+          )}
+          {task.subtasks && task.subtasks.length > 0 && (
+            <span className="flex items-center gap-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              {task.subtasks.filter(st => st.completed).length}/{task.subtasks.length}
+            </span>
+          )}
           <span className="flex items-center gap-1.5">
             <Clock size={14} />
             {format(parseISO(task.dueDate), 'h:mm a')}
