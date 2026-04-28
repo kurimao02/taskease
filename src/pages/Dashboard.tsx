@@ -71,7 +71,7 @@ export function Dashboard() {
     setIsModalOpen(true);
   };
 
-  const TaskItem = ({ task }: { task: Task }) => (
+  const TaskItem: React.FC<{ task: Task }> = ({ task }) => (
     <div 
       className="group flex items-start gap-4 p-5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-2xl shadow-sm hover:shadow-md dark:hover:shadow-gray-900/50 transition-all cursor-pointer"
       onClick={() => handleEditTask(task)}
@@ -92,7 +92,7 @@ export function Dashboard() {
             {task.priority}
           </span>
         </div>
-        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mt-2">
           <span className="flex items-center gap-1.5">
             <div className={cn("w-2 h-2 rounded-full", priorityDotColors[task.priority])} />
             {task.subject}
@@ -105,6 +105,11 @@ export function Dashboard() {
             <span className="flex items-center gap-1.5">
               <CalendarIcon size={14} />
               {format(parseISO(task.dueDate), 'MMM d')}
+            </span>
+          )}
+          {task.assignedTo && (
+            <span className="flex items-center gap-1.5 font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-0.5 rounded-full text-xs">
+              @{task.assignedTo.split('@')[0]}
             </span>
           )}
         </div>

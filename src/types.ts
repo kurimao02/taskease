@@ -10,6 +10,7 @@ export interface Task {
   completed: boolean;
   userId: string;
   groupId: string; // "" for personal tasks
+  assignedTo?: string | null; // email of the assigned member
   createdAt: any; // Timestamp
 }
 

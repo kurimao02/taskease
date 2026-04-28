@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
-import { Users, Plus, UserPlus, CheckSquare, Trash2, LogOut } from 'lucide-react';
+import { Users, Plus, UserPlus, CheckSquare, Trash2, LogOut, Circle, CheckCircle2, Clock } from 'lucide-react';
 import { useTaskStore } from '../store/useTaskStore';
 import { auth } from '../firebase';
+import { format, parseISO } from 'date-fns';
+import { cn } from '../lib/utils';
+
+const priorityColors = {
+  high: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/50',
+  medium: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/50',
+  low: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50'
+};
 
 export function Groups() {
   const groups = useTaskStore(state => state.groups);
@@ -10,6 +18,7 @@ export function Groups() {
   const addMemberToGroup = useTaskStore(state => state.addMemberToGroup);
   const leaveGroup = useTaskStore(state => state.leaveGroup);
   const deleteGroup = useTaskStore(state => state.deleteGroup);
+  const toggleTaskCompletion = useTaskStore(state => state.toggleTaskCompletion);
 
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
@@ -195,6 +204,51 @@ export function Groups() {
                         <span className="truncate">{email}</span>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Group Tasks</h4>
+                    {groupTasks.length === 0 ? (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">No tasks assigned yet.</p>
+                    ) : (
+                      <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                        {groupTasks.map((task) => (
+                          <div key={task.id} className="flex items-start gap-3 p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm">
+                            <button 
+                              onClick={() => toggleTaskCompletion(task.id)}
+                              className="mt-0.5 text-gray-300 dark:text-gray-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                            >
+                              {task.completed ? (
+                                <CheckCircle2 className="text-emerald-500" size={20} />
+                              ) : (
+                                <Circle size={20} />
+                              )}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1 mb-1">
+                                <h5 className={cn("text-sm font-medium truncate", task.completed ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-900 dark:text-white")}>
+                                  {task.title}
+                                </h5>
+                                <span className={cn("shrink-0 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-semibold border", priorityColors[task.priority])}>
+                                  {task.priority}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                                <span className="flex items-center gap-1">
+                                  <Clock size={12} />
+                                  {format(parseISO(task.dueDate), 'MMM d, h:mm a')}
+                                </span>
+                                {task.assignedTo && (
+                                  <span className="flex items-center gap-1 font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded">
+                                    @{task.assignedTo.split('@')[0]}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

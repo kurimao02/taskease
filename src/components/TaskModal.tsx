@@ -20,6 +20,7 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
   const [priority, setPriority] = useState<Priority>('medium');
   const [notes, setNotes] = useState('');
   const [groupId, setGroupId] = useState('');
+  const [assignedTo, setAssignedTo] = useState('');
   
   const groups = useTaskStore(state => state.groups);
 
@@ -31,6 +32,7 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
       setPriority(taskToEdit.priority);
       setNotes(taskToEdit.notes);
       setGroupId(taskToEdit.groupId || '');
+      setAssignedTo(taskToEdit.assignedTo || '');
     } else {
       setTitle('');
       setSubject('');
@@ -38,6 +40,7 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
       setPriority('medium');
       setNotes('');
       setGroupId('');
+      setAssignedTo('');
     }
   }, [taskToEdit, isOpen]);
 
@@ -52,7 +55,8 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
       dueDate: new Date(dueDate).toISOString(),
       priority,
       notes,
-      groupId
+      groupId,
+      assignedTo: assignedTo || null
     };
 
     if (taskToEdit) {
@@ -104,18 +108,36 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Assign To</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Group / Project</label>
               <select 
                 value={groupId}
-                onChange={(e) => setGroupId(e.target.value)}
+                onChange={(e) => {
+                  setGroupId(e.target.value);
+                  setAssignedTo(''); // reset assigned user when group changes
+                }}
                 className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-shadow text-gray-900 dark:text-white"
               >
-                <option value="">Personal</option>
+                <option value="">Personal Data</option>
                 {groups.map(g => (
                   <option key={g.id} value={g.id}>Group: {g.name}</option>
                 ))}
               </select>
             </div>
+            {groupId && (
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Assign To Member</label>
+                <select 
+                  value={assignedTo}
+                  onChange={(e) => setAssignedTo(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-shadow text-gray-900 dark:text-white"
+                >
+                  <option value="">Unassigned</option>
+                  {groups.find(g => g.id === groupId)?.memberEmails.map(email => (
+                    <option key={email} value={email}>{email}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
