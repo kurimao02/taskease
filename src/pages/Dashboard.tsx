@@ -217,8 +217,8 @@ export function Dashboard() {
               className="bg-zinc-50/50 dark:bg-zinc-900/20 p-4 rounded-3xl border border-zinc-200/50 dark:border-zinc-800 flex flex-col min-h-[500px]"
             >
               <div className="flex items-center justify-between mb-4 px-2">
-                <h3 className="font-semibold text-gray-900 dark:text-white capitalize">
-                  {status.replace('-', ' ')}
+                <h3 className="font-semibold text-zinc-900 dark:text-white capitalize">
+                  {status === 'todo' ? 'To Do' : status.replace('-', ' ')}
                 </h3>
                 <span className="bg-white dark:bg-zinc-800 text-gray-500 py-1 px-2.5 rounded-full text-xs font-medium shadow-sm">
                   {filteredTasks.filter(t => t.status === status || (status === 'todo' && !t.status && !t.completed) || (status === 'done' && t.completed && t.status !== 'in-progress')).length}
