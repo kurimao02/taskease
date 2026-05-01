@@ -126,15 +126,23 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
     
     // Check again in DB just in case
     const chatRef = doc(db, 'chats', chatId);
-    const chatSnap = await getDoc(chatRef);
-    
-    if (!chatSnap.exists()) {
+    try {
+      const chatSnap = await getDoc(chatRef);
+      if (!chatSnap.exists()) {
+        await setDoc(chatRef, {
+          id: chatId,
+          participants,
+          updatedAt: new Date().toISOString(),
+          lastMessage: ''
+        });
+      }
+    } catch (e: any) {
+      console.warn("getDoc failed, proceeding with setDoc merge", e);
       await setDoc(chatRef, {
         id: chatId,
         participants,
         updatedAt: new Date().toISOString(),
-        lastMessage: ''
-      });
+      }, { merge: true });
     }
 
     return chatId;
