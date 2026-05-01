@@ -221,12 +221,20 @@ export function Dashboard() {
                   {status === 'todo' ? 'To Do' : status.replace('-', ' ')}
                 </h3>
                 <span className="bg-white dark:bg-zinc-800 text-gray-500 py-1 px-2.5 rounded-full text-xs font-medium shadow-sm">
-                  {filteredTasks.filter(t => t.status === status || (status === 'todo' && !t.status && !t.completed) || (status === 'done' && t.completed && t.status !== 'in-progress')).length}
+                  {filteredTasks.filter(t => 
+                    status === 'done' ? (t.completed || t.status === 'done') :
+                    status === 'in-progress' ? (t.status === 'in-progress' && !t.completed) :
+                    ((!t.status || t.status === 'todo') && !t.completed)
+                  ).length}
                 </span>
               </div>
               <div className="flex-1 space-y-3">
                 {filteredTasks
-                  .filter(t => t.status === status || (status === 'todo' && !t.status && !t.completed) || (status === 'done' && t.completed && t.status !== 'in-progress'))
+                  .filter(t => 
+                    status === 'done' ? (t.completed || t.status === 'done') :
+                    status === 'in-progress' ? (t.status === 'in-progress' && !t.completed) :
+                    ((!t.status || t.status === 'todo') && !t.completed)
+                  )
                   .sort((a, b) => parseISO(a.dueDate).getTime() - parseISO(b.dueDate).getTime())
                   .map(task => (
                     <TaskItem key={task.id} task={task} isBoard />
