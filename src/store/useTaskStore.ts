@@ -15,7 +15,9 @@ interface TaskStore {
   deleteTask: (id: string) => Promise<void>;
   toggleTaskCompletion: (id: string) => Promise<void>;
   addGroup: (group: Omit<Group, 'id' | 'createdAt' | 'createdBy' | 'memberEmails'>) => Promise<void>;
-  addMemberToGroup: (groupId: string, email: string) => Promise<void>;
+  inviteMemberToGroup: (groupId: string, email: string) => Promise<void>;
+  acceptGroupInvite: (groupId: string, email: string) => Promise<void>;
+  rejectGroupInvite: (groupId: string, email: string) => Promise<void>;
   leaveGroup: (groupId: string, email: string) => Promise<void>;
   deleteGroup: (id: string) => Promise<void>;
 }
@@ -87,13 +89,34 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
   },
 
-  addMemberToGroup: async (groupId, email) => {
+  inviteMemberToGroup: async (groupId, email) => {
     try {
       await updateDoc(doc(db, 'groups', groupId), {
+        invitedEmails: arrayUnion(email)
+      });
+    } catch (error) {
+      console.error("Error inviting member: ", error);
+    }
+  },
+
+  acceptGroupInvite: async (groupId, email) => {
+    try {
+      await updateDoc(doc(db, 'groups', groupId), {
+        invitedEmails: arrayRemove(email),
         memberEmails: arrayUnion(email)
       });
     } catch (error) {
-      console.error("Error adding member: ", error);
+      console.error("Error accepting invite: ", error);
+    }
+  },
+
+  rejectGroupInvite: async (groupId, email) => {
+    try {
+      await updateDoc(doc(db, 'groups', groupId), {
+        invitedEmails: arrayRemove(email)
+      });
+    } catch (error) {
+      console.error("Error rejecting invite: ", error);
     }
   },
 

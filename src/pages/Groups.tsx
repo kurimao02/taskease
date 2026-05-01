@@ -15,7 +15,9 @@ export function Groups() {
   const groups = useTaskStore(state => state.groups);
   const tasks = useTaskStore(state => state.tasks);
   const addGroup = useTaskStore(state => state.addGroup);
-  const addMemberToGroup = useTaskStore(state => state.addMemberToGroup);
+  const inviteMemberToGroup = useTaskStore(state => state.inviteMemberToGroup);
+  const acceptGroupInvite = useTaskStore(state => state.acceptGroupInvite);
+  const rejectGroupInvite = useTaskStore(state => state.rejectGroupInvite);
   const leaveGroup = useTaskStore(state => state.leaveGroup);
   const deleteGroup = useTaskStore(state => state.deleteGroup);
   const toggleTaskCompletion = useTaskStore(state => state.toggleTaskCompletion);
@@ -39,10 +41,14 @@ export function Groups() {
   const handleInvite = async (e: React.FormEvent, groupId: string) => {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
-    await addMemberToGroup(groupId, inviteEmail);
+    await inviteMemberToGroup(groupId, inviteEmail);
     setInviteEmail('');
     setActiveGroupId(null);
   };
+
+  const currentUserEmail = auth.currentUser?.email || '';
+  const myGroups = groups.filter(g => g.memberEmails.includes(currentUserEmail));
+  const pendingGroups = groups.filter(g => g.invitedEmails?.includes(currentUserEmail));
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in duration-500">
@@ -104,7 +110,37 @@ export function Groups() {
         </div>
       )}
 
-      {groups.length === 0 ? (
+      {pendingGroups.length > 0 && (
+        <div className="mb-8 p-6 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-3xl border border-indigo-100 dark:border-indigo-900/30">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Pending Invitations</h2>
+          <div className="space-y-4">
+            {pendingGroups.map(group => (
+              <div key={group.id} className="bg-white dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 flex items-center justify-between shadow-sm">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{group.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{group.description}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => rejectGroupInvite(group.id, currentUserEmail)}
+                    className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 rounded-xl transition-colors"
+                  >
+                    Decline
+                  </button>
+                  <button
+                    onClick={() => acceptGroupInvite(group.id, currentUserEmail)}
+                    className="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40 rounded-xl transition-colors"
+                  >
+                    Accept
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {myGroups.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700/50 border-dashed">
           <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4">
             <Users size={32} className="text-indigo-600 dark:text-indigo-400" />
@@ -116,7 +152,7 @@ export function Groups() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {groups.map(group => {
+          {myGroups.map(group => {
             const groupTasks = tasks.filter(t => t.groupId === group.id);
             const completedTasks = groupTasks.filter(t => t.completed).length;
             const isCreator = auth.currentUser?.uid === group.createdBy;
@@ -190,7 +226,7 @@ export function Groups() {
                         className="flex-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-white"
                       />
                       <button type="submit" className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700">
-                        Add
+                        Send Invite
                       </button>
                     </form>
                   )}
@@ -199,7 +235,7 @@ export function Groups() {
                     {group.memberEmails.map((email, idx) => (
                       <div key={idx} className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 group/member">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
+                          <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-zinc-700 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
                             {email.charAt(0).toUpperCase()}
                           </div>
                           <span className="truncate">{email}</span>
@@ -215,6 +251,25 @@ export function Groups() {
                             className="text-xs text-gray-400 hover:text-red-500 opacity-0 group-hover/member:opacity-100 transition-opacity px-2 py-1"
                           >
                             Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {group.invitedEmails?.map((email, idx) => (
+                      <div key={`inv-${idx}`} className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-500 group/member italic">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full border border-dashed border-gray-300 dark:border-zinc-600 flex items-center justify-center text-xs font-medium">
+                            {email.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="truncate">{email} (Pending)</span>
+                        </div>
+                        {isCreator && (
+                          <button 
+                            type="button"
+                            onClick={() => rejectGroupInvite(group.id, email)}
+                            className="text-xs text-gray-400 hover:text-red-500 opacity-0 group-hover/member:opacity-100 transition-opacity px-2 py-1"
+                          >
+                            Revoke
                           </button>
                         )}
                       </div>

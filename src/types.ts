@@ -36,6 +36,7 @@ export interface Group {
   name: string;
   description: string;
   memberEmails: string[];
+  invitedEmails?: string[]; // NEW: People invited but haven't accepted
   createdBy: string;
   createdAt: any;
 }

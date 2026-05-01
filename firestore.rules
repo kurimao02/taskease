@@ -11,9 +11,15 @@ service cloud.firestore {
     }
 
     match /groups/{groupId} {
-      allow read: if isAuthenticated() && request.auth.token.email in resource.data.memberEmails;
+      allow read: if isAuthenticated() && (
+        request.auth.token.email in resource.data.memberEmails ||
+        (resource.data.keys().hasAll(['invitedEmails']) && request.auth.token.email in resource.data.invitedEmails)
+      );
       allow create: if isAuthenticated() && request.auth.token.email in request.resource.data.memberEmails;
-      allow update: if isAuthenticated() && request.auth.token.email in resource.data.memberEmails;
+      allow update: if isAuthenticated() && (
+        request.auth.token.email in resource.data.memberEmails ||
+        (resource.data.keys().hasAll(['invitedEmails']) && request.auth.token.email in resource.data.invitedEmails)
+      );
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.createdBy;
     }
 

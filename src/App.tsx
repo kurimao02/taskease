@@ -15,7 +15,7 @@ import { useThemeStore } from './store/useThemeStore';
 import { useTaskStore } from './store/useTaskStore';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, or } from 'firebase/firestore';
 import { Task, Group } from './types';
 
 export default function App() {
@@ -52,7 +52,13 @@ export default function App() {
       setGroups([]);
       return;
     }
-    const q = query(collection(db, 'groups'), where('memberEmails', 'array-contains', user.email));
+    const q = query(
+      collection(db, 'groups'),
+      or(
+        where('memberEmails', 'array-contains', user.email),
+        where('invitedEmails', 'array-contains', user.email)
+      )
+    );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const groupsData: Group[] = [];
       snapshot.forEach((doc) => {
@@ -82,12 +88,14 @@ export default function App() {
 
   // Listen to Group Tasks
   useEffect(() => {
-    if (!user || groups.length === 0) {
+    if (!user) return;
+    const activeGroups = groups.filter(g => g.memberEmails.includes(user.email || ''));
+    if (activeGroups.length === 0) {
       setGroupTasksMap({});
       return;
     }
     
-    const unsubscribes = groups.map(group => {
+    const unsubscribes = activeGroups.map(group => {
       const q = query(collection(db, 'tasks'), where('groupId', '==', group.id));
       return onSnapshot(q, (snapshot) => {
         const tasksData: Task[] = [];
