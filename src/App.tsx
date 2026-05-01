@@ -10,19 +10,24 @@ import { Dashboard } from './pages/Dashboard';
 import { CalendarView } from './pages/CalendarView';
 import { CompletedTasks } from './pages/CompletedTasks';
 import { Groups } from './pages/Groups';
+import { Friends } from './pages/Friends';
 import { Login } from './pages/Login';
 import { useThemeStore } from './store/useThemeStore';
 import { useTaskStore } from './store/useTaskStore';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { collection, onSnapshot, query, where, or } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, or, doc } from 'firebase/firestore';
 import { Task, Group } from './types';
+import { useSocialStore } from './store/useSocialStore';
 
 export default function App() {
   const theme = useThemeStore(state => state.theme);
   const setTasks = useTaskStore(state => state.setTasks);
   const setGroups = useTaskStore(state => state.setGroups);
   const groups = useTaskStore(state => state.groups);
+  const initializeUserProfile = useSocialStore(state => state.initializeUserProfile);
+  const setCurrentUserProfile = useSocialStore(state => state.setCurrentUserProfile);
+  const setChats = useSocialStore(state => state.setChats);
   
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,9 +43,41 @@ export default function App() {
     }
   }, [theme]);
 
+  // Handle Social Store Subscriptions
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    if (!user) {
+      setCurrentUserProfile(null);
+      setChats([]);
+      return;
+    }
+
+    // Subscribe to UserProfile
+    const userUnsub = onSnapshot(doc(db, 'users', user.uid), (doc) => {
+      if (doc.exists()) {
+        setCurrentUserProfile(doc.data() as any);
+      }
+    });
+
+    // Subscribe to Chats
+    const chatsQuery = query(collection(db, 'chats'), where('participants', 'array-contains', user.email));
+    const chatsUnsub = onSnapshot(chatsQuery, (snapshot) => {
+      const chatsData: any[] = [];
+      snapshot.forEach(d => chatsData.push({ id: d.id, ...d.data() }));
+      setChats(chatsData);
+    });
+
+    return () => {
+      userUnsub();
+      chatsUnsub();
+    };
+  }, [user, setCurrentUserProfile, setChats]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        await initializeUserProfile(currentUser);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
@@ -141,6 +178,7 @@ export default function App() {
             <Route path="calendar" element={<CalendarView />} />
             <Route path="completed" element={<CompletedTasks />} />
             <Route path="groups" element={<Groups />} />
+            <Route path="friends" element={<Friends />} />
           </Route>
         ) : (
           <Route path="*" element={<Login />} />

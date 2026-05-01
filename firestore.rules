@@ -43,5 +43,25 @@ service cloud.firestore {
         (resource.data.groupId != "" && isGroupMember(resource.data.groupId))
       );
     }
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated(); // Simpler rule to allow friend requests
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() && request.auth.token.email in resource.data.participants;
+      allow create: if isAuthenticated() && request.auth.token.email in request.resource.data.participants;
+      allow update: if isAuthenticated() && request.auth.token.email in resource.data.participants;
+      allow delete: if isAuthenticated() && request.auth.token.email in resource.data.participants;
+      
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && request.auth.token.email in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow create: if isAuthenticated() && request.auth.token.email in get(/databases/$(database)/documents/chats/$(chatId)).data.participants && request.resource.data.senderEmail == request.auth.token.email;
+        allow update: if isAuthenticated() && request.auth.token.email in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow delete: if isAuthenticated() && request.auth.token.email in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+      }
+    }
   }
 }

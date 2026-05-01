@@ -40,3 +40,26 @@ export interface Group {
   createdBy: string;
   createdAt: any;
 }
+
+export interface UserProfile {
+  id: string; // auth uid
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+  friends: string[]; // array of emails
+  friendRequests: string[]; // array of emails
+}
+
+export interface ChatMessage {
+  id: string;
+  text: string;
+  senderEmail: string;
+  createdAt: any;
+}
+
+export interface Chat {
+  id: string; // can be "chat_email1_email2"
+  participants: string[]; // array of emails
+  updatedAt: any;
+  lastMessage?: string;
+}
