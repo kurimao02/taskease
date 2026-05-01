@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { db } from '../firebase';
 import { 
-  collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, arrayUnion, arrayRemove, query, where, onSnapshot, orderBy 
+  collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, arrayUnion, arrayRemove, query, where, onSnapshot, orderBy, getDocs, limit 
 } from 'firebase/firestore';
 import { UserProfile, Chat, ChatMessage } from '../types';
 
@@ -58,12 +58,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
 
     // We need to query for the user with this email to update their friendRequests.
     const q = query(collection(db, 'users'), where('email', '==', toEmail));
-    const snapshot = await new Promise<any>((resolve) => {
-      const unsub = onSnapshot(q, (snap) => {
-        unsub();
-        resolve(snap);
-      });
-    });
+    const snapshot = await getDocs(q);
 
     if (!snapshot.empty) {
       const toUserDoc = snapshot.docs[0];
@@ -81,12 +76,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
 
     // Query for the other user to add us to their friends
     const q = query(collection(db, 'users'), where('email', '==', fromEmail));
-    const snapshot = await new Promise<any>((resolve) => {
-      const unsub = onSnapshot(q, (snap) => {
-        unsub();
-        resolve(snap);
-      });
-    });
+    const snapshot = await getDocs(q);
 
     if (!snapshot.empty) {
       const fromUserDoc = snapshot.docs[0];

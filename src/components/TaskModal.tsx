@@ -99,6 +99,12 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
     }
   };
 
+  const handleDeleteComment = (commentId: string) => {
+    if (!liveTask) return;
+    const updatedComments = displayComments.filter(c => c.id !== commentId);
+    updateTask(liveTask.id, { comments: updatedComments });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -305,14 +311,26 @@ export function TaskModal({ isOpen, onClose, taskToEdit }: TaskModalProps) {
                   <p className="text-sm text-gray-500 dark:text-gray-400 italic">No comments yet. Start the discussion!</p>
                 ) : (
                   displayComments.map((comment) => (
-                    <div key={comment.id} className="bg-gray-50 dark:bg-gray-900/40 p-3 rounded-xl">
+                    <div key={comment.id} className="bg-gray-50 dark:bg-gray-900/40 p-3 rounded-xl group">
                       <div className="flex justify-between items-start mb-1">
                         <span className="text-xs font-semibold text-gray-900 dark:text-gray-200">
                           {comment.createdBy.split('@')[0]}
                         </span>
-                        <span className="text-[10px] text-gray-500">
-                          {format(parseISO(comment.createdAt), 'MMM d, h:mm a')}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-gray-500">
+                            {format(parseISO(comment.createdAt), 'MMM d, h:mm a')}
+                          </span>
+                          {(comment.createdBy === auth.currentUser?.email) && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteComment(comment.id)}
+                              className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Delete comment"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <p className="text-sm text-gray-700 dark:text-gray-300">{comment.text}</p>
                     </div>

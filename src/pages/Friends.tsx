@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSocialStore } from '../store/useSocialStore';
 import { auth, db } from '../firebase';
 import { UserPlus, MessageSquare, Send, Check, X, Users, Search } from 'lucide-react';
-import { collection, query, orderBy, onSnapshot, doc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, limit } from 'firebase/firestore';
 
 export function Friends() {
   const { 
@@ -28,12 +28,13 @@ export function Friends() {
     }
     const q = query(
       collection(db, 'chats', activeChatId, 'messages'),
-      orderBy('createdAt', 'asc')
+      orderBy('createdAt', 'desc'),
+      limit(50)
     );
     const unsub = onSnapshot(q, (snap) => {
       const msgs: any[] = [];
       snap.forEach(d => msgs.push({ id: d.id, ...d.data() }));
-      setMessages(msgs);
+      setMessages(msgs.reverse());
     });
     return () => unsub();
   }, [activeChatId]);
