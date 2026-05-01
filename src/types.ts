@@ -55,6 +55,7 @@ export interface ChatMessage {
   text: string;
   senderEmail: string;
   createdAt: any;
+  deletedFor?: string[];
 }
 
 export interface Chat {
@@ -62,4 +63,5 @@ export interface Chat {
   participants: string[]; // array of emails
   updatedAt: any;
   lastMessage?: string;
+  deletedFor?: string[];
 }

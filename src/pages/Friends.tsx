@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSocialStore } from '../store/useSocialStore';
 import { auth, db } from '../firebase';
-import { UserPlus, MessageSquare, Send, Check, X, Users, Search } from 'lucide-react';
+import { UserPlus, MessageSquare, Send, Check, X, Users, Search, Trash2, MoreVertical } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, doc, limit } from 'firebase/firestore';
 
 export function Friends() {
@@ -12,7 +12,9 @@ export function Friends() {
     acceptFriendRequest, 
     rejectFriendRequest, 
     startChat, 
-    sendMessage 
+    sendMessage,
+    deleteMessage,
+    deleteChat
   } = useSocialStore();
   
   const [activeTab, setActiveTab] = useState<'friends' | 'chats'>('friends');
@@ -20,6 +22,8 @@ export function Friends() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [chatInput, setChatInput] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
+  const [deleteMessagePrompt, setDeleteMessagePrompt] = useState<string | null>(null);
+  const [deleteChatPrompt, setDeleteChatPrompt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!activeChatId) {
@@ -33,11 +37,16 @@ export function Friends() {
     );
     const unsub = onSnapshot(q, (snap) => {
       const msgs: any[] = [];
-      snap.forEach(d => msgs.push({ id: d.id, ...d.data() }));
+      snap.forEach(d => {
+        const data = d.data();
+        if (!data.deletedFor?.includes(currentUserProfile?.email)) {
+          msgs.push({ id: d.id, ...data });
+        }
+      });
       setMessages(msgs.reverse());
     });
     return () => unsub();
-  }, [activeChatId]);
+  }, [activeChatId, currentUserProfile?.email]);
 
   const handleSendRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +67,8 @@ export function Friends() {
     if (chatId) {
       setActiveChatId(chatId);
       setActiveTab('chats');
+      setDeleteMessagePrompt(null);
+      setDeleteChatPrompt(null);
     }
   };
 
@@ -162,7 +173,11 @@ export function Friends() {
                   return (
                     <button
                       key={c.id}
-                      onClick={() => setActiveChatId(c.id)}
+                      onClick={() => {
+                        setActiveChatId(c.id);
+                        setDeleteMessagePrompt(null);
+                        setDeleteChatPrompt(null);
+                      }}
                       className={'w-full flex flex-col p-3 rounded-xl border transition-colors text-left ' + (isActive ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-800/50' : 'bg-white border-zinc-100 dark:bg-zinc-800 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700/50')}
                     >
                       <span className="text-sm font-semibold text-gray-900 dark:text-white truncate w-full">{otherEmail}</span>
@@ -180,10 +195,44 @@ export function Friends() {
       <div className="flex-1 flex flex-col bg-white dark:bg-zinc-900">
         {activeChatId ? (
           <>
-            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-950/50">
+            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-950/50 relative">
               <h3 className="font-semibold text-gray-900 dark:text-white">
                 {getOtherParticipant(chats.find(c => c.id === activeChatId)?.participants || [])}
               </h3>
+              
+              <div className="relative">
+                <button 
+                  onClick={() => setDeleteChatPrompt(deleteChatPrompt === activeChatId ? null : activeChatId)}
+                  className="p-2 text-gray-400 hover:text-red-500 rounded-lg transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  <Trash2 size={18} />
+                </button>
+                
+                {deleteChatPrompt === activeChatId && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg p-2 z-10 flex flex-col gap-1">
+                    <button 
+                      onClick={async () => {
+                        await deleteChat(activeChatId, false);
+                        setDeleteChatPrompt(null);
+                        setActiveChatId(null);
+                      }}
+                      className="px-3 py-2 text-xs text-left w-full hover:bg-gray-100 dark:hover:bg-zinc-700/50 rounded-lg text-gray-700 dark:text-gray-300 transition-colors"
+                    >
+                      Delete for me
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        await deleteChat(activeChatId, true);
+                        setDeleteChatPrompt(null);
+                        setActiveChatId(null);
+                      }}
+                      className="px-3 py-2 text-xs text-left w-full hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-600 transition-colors"
+                    >
+                      Delete for both
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             
             {/* Message History */}
@@ -197,9 +246,44 @@ export function Friends() {
                 messages.map(msg => {
                   const isMe = msg.senderEmail === currentUserProfile.email;
                   return (
-                    <div key={msg.id} className={'flex flex-col max-w-[75%] ' + (isMe ? 'ml-auto items-end' : 'mr-auto items-start')}>
-                      <div className={'px-4 py-2.5 rounded-2xl ' + (isMe ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-bl-sm')}>
-                        <p className="text-sm">{msg.text}</p>
+                    <div key={msg.id} className={'flex flex-col max-w-[75%] group relative ' + (isMe ? 'ml-auto items-end' : 'mr-auto items-start')}>
+                      <div className="flex items-center gap-2">
+                        {isMe && (
+                          <div className={'relative ' + (deleteMessagePrompt === msg.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity')}>
+                            <button
+                              onClick={() => setDeleteMessagePrompt(deleteMessagePrompt === msg.id ? null : msg.id)}
+                              className="p-1 rounded bg-white dark:bg-zinc-800 border border-black/5 shadow-sm text-gray-500 hover:text-red-500"
+                            >
+                              <MoreVertical size={14} />
+                            </button>
+                            
+                            {deleteMessagePrompt === msg.id && (
+                              <div className="absolute top-full right-0 mt-1 w-32 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-xl rounded-lg p-1 z-20 flex flex-col">
+                                <button
+                                  onClick={async () => {
+                                    await deleteMessage(activeChatId, msg.id, false);
+                                    setDeleteMessagePrompt(null);
+                                  }}
+                                  className="text-xs text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-zinc-700/50 rounded-md text-gray-700 dark:text-gray-300"
+                                >
+                                  Delete for me
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    await deleteMessage(activeChatId, msg.id, true);
+                                    setDeleteMessagePrompt(null);
+                                  }}
+                                  className="text-xs text-left px-2 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-red-600"
+                                >
+                                  Delete for everyone
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className={'px-4 py-2.5 rounded-2xl ' + (isMe ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-bl-sm')}>
+                          <p className="text-sm">{msg.text}</p>
+                        </div>
                       </div>
                       <span className="text-[10px] text-gray-400 mt-1 mx-1">
                         {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}

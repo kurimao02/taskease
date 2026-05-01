@@ -62,7 +62,12 @@ export default function App() {
     const chatsQuery = query(collection(db, 'chats'), where('participants', 'array-contains', user.email));
     const chatsUnsub = onSnapshot(chatsQuery, (snapshot) => {
       const chatsData: any[] = [];
-      snapshot.forEach(d => chatsData.push({ id: d.id, ...d.data() }));
+      snapshot.forEach(d => {
+        const data = d.data();
+        if (!data.deletedFor?.includes(user.email)) {
+          chatsData.push({ id: d.id, ...data });
+        }
+      });
       setChats(chatsData);
     });
 

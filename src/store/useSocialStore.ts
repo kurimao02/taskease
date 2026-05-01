@@ -22,6 +22,8 @@ interface SocialStore {
   
   startChat: (withEmail: string) => Promise<string>;
   sendMessage: (chatId: string, text: string) => Promise<void>;
+  deleteMessage: (chatId: string, messageId: string, forEveryone: boolean) => Promise<void>;
+  deleteChat: (chatId: string, forEveryone: boolean) => Promise<void>;
 }
 
 export const useSocialStore = create<SocialStore>((set, get) => ({
@@ -153,5 +155,31 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       lastMessage: text,
       updatedAt: new Date().toISOString()
     });
+  },
+
+  deleteMessage: async (chatId, messageId, forEveryone) => {
+    const { currentUserProfile } = get();
+    if (!currentUserProfile) return;
+
+    if (forEveryone) {
+      await deleteDoc(doc(db, 'chats', chatId, 'messages', messageId));
+    } else {
+      await updateDoc(doc(db, 'chats', chatId, 'messages', messageId), {
+        deletedFor: arrayUnion(currentUserProfile.email)
+      });
+    }
+  },
+
+  deleteChat: async (chatId, forEveryone) => {
+    const { currentUserProfile } = get();
+    if (!currentUserProfile) return;
+
+    if (forEveryone) {
+      await deleteDoc(doc(db, 'chats', chatId));
+    } else {
+      await updateDoc(doc(db, 'chats', chatId), {
+        deletedFor: arrayUnion(currentUserProfile.email)
+      });
+    }
   }
 }));
