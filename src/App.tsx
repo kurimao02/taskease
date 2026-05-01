@@ -28,7 +28,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   const [personalTasks, setPersonalTasks] = useState<Task[]>([]);
-  const [groupTasksMap, setGroupTasksMap] = useState<Record<string, Task[]>>({});
+  const [groupTasks, setGroupTasks] = useState<Task[]>([]);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -91,29 +91,42 @@ export default function App() {
     if (!user) return;
     const activeGroups = groups.filter(g => g.memberEmails.includes(user.email || ''));
     if (activeGroups.length === 0) {
-      setGroupTasksMap({});
+      setGroupTasks([]);
       return;
     }
     
-    const unsubscribes = activeGroups.map(group => {
-      const q = query(collection(db, 'tasks'), where('groupId', '==', group.id));
+    // Create chunks of up to 30 for the 'in' query constraint
+    const groupIds = activeGroups.map(g => g.id);
+    const chunks = [];
+    for (let i = 0; i < groupIds.length; i += 30) {
+      chunks.push(groupIds.slice(i, i + 30));
+    }
+
+    const unsubscribes = chunks.map(chunk => {
+      const q = query(collection(db, 'tasks'), where('groupId', 'in', chunk));
       return onSnapshot(q, (snapshot) => {
         const tasksData: Task[] = [];
         snapshot.forEach((doc) => {
           tasksData.push({ id: doc.id, ...doc.data() } as Task);
         });
-        setGroupTasksMap(prev => ({ ...prev, [group.id]: tasksData }));
+        
+        setGroupTasks(prev => {
+          // Merge logic: Remove existing tasks in this chunk, then add incoming ones
+          const filtered = prev.filter(t => !chunk.includes(t.groupId as string));
+          return [...filtered, ...tasksData];
+        });
       });
     });
 
-    return () => unsubscribes.forEach(unsub => unsub());
+    return () => {
+      unsubscribes.forEach(unsub => unsub());
+    };
   }, [user, groups]);
 
   // Combine Tasks
   useEffect(() => {
-    const allGroupTasks = Object.values(groupTasksMap).flat();
-    setTasks([...personalTasks, ...allGroupTasks]);
-  }, [personalTasks, groupTasksMap, setTasks]);
+    setTasks([...personalTasks, ...groupTasks]);
+  }, [personalTasks, groupTasks, setTasks]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">Loading...</div>;
