@@ -24,6 +24,16 @@ export function Friends() {
   const [messages, setMessages] = useState<any[]>([]);
   const [deleteMessagePrompt, setDeleteMessagePrompt] = useState<string | null>(null);
   const [deleteChatPrompt, setDeleteChatPrompt] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    if (activeChatId && activeTab === 'chats') {
+      const stillExists = chats.find(c => c.id === activeChatId);
+      if (!stillExists) {
+        setActiveChatId(null);
+      }
+    }
+  }, [chats, activeChatId, activeTab]);
 
   useEffect(() => {
     if (!activeChatId) {
@@ -57,9 +67,16 @@ export function Friends() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim() || !activeChatId) return;
-    await sendMessage(activeChatId, chatInput.trim());
+    const text = chatInput.trim();
+    if (!text || !activeChatId || isSending) return;
+    
+    setIsSending(true);
     setChatInput('');
+    try {
+      await sendMessage(activeChatId, text);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleStartChat = async (email: string) => {
@@ -302,12 +319,13 @@ export function Friends() {
                   placeholder="Type a message..."
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
-                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-zinc-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-gray-100"
+                  disabled={isSending}
+                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-zinc-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-gray-100 disabled:opacity-50"
                 />
                 <button 
                   type="submit"
-                  disabled={!chatInput.trim()}
-                  className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                  disabled={!chatInput.trim() || isSending}
+                  className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center justify-center"
                 >
                   <Send size={20} className="mt-0.5 ml-[-1px]" />
                 </button>

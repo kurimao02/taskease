@@ -175,6 +175,14 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
     if (!currentUserProfile) return;
 
     if (forEveryone) {
+      const msgsRef = collection(db, 'chats', chatId, 'messages');
+      try {
+        const snap = await getDocs(msgsRef);
+        const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+      } catch (e) {
+        console.warn('Failed to delete subcollection messages', e);
+      }
       await deleteDoc(doc(db, 'chats', chatId));
     } else {
       await updateDoc(doc(db, 'chats', chatId), {
