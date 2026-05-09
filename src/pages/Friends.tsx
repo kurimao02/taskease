@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSocialStore } from '../store/useSocialStore';
 import { auth, db } from '../firebase';
 import { UserPlus, MessageSquare, Send, Check, X, Users, Search, Trash2, MoreVertical, CheckCheck, UserMinus } from 'lucide-react';
-import { collection, query, orderBy, onSnapshot, doc, limit } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, limit, where } from 'firebase/firestore';
 
 export function Friends() {
   const { 
@@ -448,7 +448,7 @@ export function Friends() {
                         </span>
                         {isMe && (
                           <span className="mt-0.5">
-                            {msg.readBy?.length > 1 ? (
+                            {msg.readBy?.some((email: string) => email !== msg.senderEmail) ? (
                               <CheckCheck size={12} className="text-blue-500" />
                             ) : (
                               <Check size={12} className="text-gray-400" />
