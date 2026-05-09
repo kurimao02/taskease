@@ -82,11 +82,50 @@ export default function App() {
       setUser(currentUser);
       if (currentUser) {
         await initializeUserProfile(currentUser);
+        // Also fire update
+        import('firebase/firestore').then(({ updateDoc, doc }) => {
+          updateDoc(doc(db, 'users', currentUser.uid), {
+            isOnline: true,
+            lastActive: new Date().toISOString()
+          }).catch(console.error);
+        });
       }
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [initializeUserProfile]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Heartbeat logic to keep `lastActive` fresh
+    const interval = setInterval(() => {
+      import('firebase/firestore').then(({ updateDoc, doc }) => {
+        updateDoc(doc(db, 'users', user.uid), {
+          isOnline: true,
+          lastActive: new Date().toISOString()
+        }).catch(() => {});
+      });
+    }, 60000); // 1 minute heartbeat
+
+    // Cleanup logic
+    const handleBeforeUnload = () => {
+      // Use relatively synchronous way or just promise fire-and-forget
+      import('firebase/firestore').then(({ updateDoc, doc }) => {
+        updateDoc(doc(db, 'users', user.uid), {
+          isOnline: false,
+          lastActive: new Date().toISOString()
+        }).catch(() => {});
+      });
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      handleBeforeUnload();
+    };
+  }, [user]);
 
   // Listen to Groups
   useEffect(() => {

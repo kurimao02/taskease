@@ -27,6 +27,31 @@ export function Friends() {
   const [isSending, setIsSending] = useState(false);
   const isSendingRef = useRef(false);
 
+  const [friendsProfiles, setFriendsProfiles] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    if (!currentUserProfile?.friends?.length) {
+      setFriendsProfiles({});
+      return;
+    }
+
+    const q = query(
+      collection(db, 'users'),
+      where('email', 'in', currentUserProfile.friends.slice(0, 30))
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      const profiles: Record<string, any> = {};
+      snap.forEach(d => {
+        const data = d.data();
+        profiles[data.email] = data;
+      });
+      setFriendsProfiles(profiles);
+    });
+
+    return () => unsub();
+  }, [currentUserProfile?.friends]);
+
   useEffect(() => {
     if (activeChatId && activeTab === 'chats') {
       const stillExists = chats.find(c => c.id === activeChatId);
@@ -104,6 +129,18 @@ export function Friends() {
     return participants.find(p => p !== currentUserProfile.email) || 'Unknown';
   };
 
+  const getOnlineStatus = (email: string) => {
+    const profile = friendsProfiles[email];
+    if (profile?.isOnline && profile?.lastActive) {
+      const lastActiveDate = new Date(profile.lastActive);
+      const now = new Date();
+      if ((now.getTime() - lastActiveDate.getTime()) / 60000 < 5) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   return (
     <div className="max-w-6xl mx-auto h-[calc(100vh-8rem)] flex flex-col md:flex-row bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm animate-in fade-in duration-500">
       
@@ -171,17 +208,35 @@ export function Friends() {
                   <div className="text-center py-6 text-sm text-gray-500">No friends yet. Add someone above!</div>
                 ) : (
                   <div className="space-y-2">
-                    {currentUserProfile.friends.map(email => (
-                      <div key={email} className="flex items-center justify-between p-3 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700">
-                        <span className="text-sm font-medium text-gray-900 dark:text-white truncate flex-1">{email}</span>
-                        <button 
-                          onClick={() => handleStartChat(email)}
-                          className="p-2 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
-                        >
-                          <MessageSquare size={16} />
-                        </button>
-                      </div>
-                    ))}
+                    {currentUserProfile.friends.map(email => {
+                      const profile = friendsProfiles[email];
+                      const isOnline = getOnlineStatus(email);
+                      
+                      return (
+                        <div key={email} className="flex items-center justify-between p-3 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="relative flex-shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-medium">
+                                {email[0].toUpperCase()}
+                              </div>
+                              <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-zinc-800 ${isOnline ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`} title={isOnline ? 'Online' : 'Offline'} />
+                            </div>
+                            <div className="flex flex-col truncate min-w-0">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{profile?.displayName || email}</span>
+                              <span className="text-xs text-gray-500 dark:text-zinc-400 truncate">{isOnline ? 'Active now' : 'Offline'}</span>
+                            </div>
+                          </div>
+                          
+                          <button 
+                            onClick={() => handleStartChat(email)}
+                            className="p-2 ml-2 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 rounded-lg transition-colors flex-shrink-0"
+                            title="Message"
+                          >
+                            <MessageSquare size={16} />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -204,10 +259,18 @@ export function Friends() {
                         setDeleteMessagePrompt(null);
                         setDeleteChatPrompt(null);
                       }}
-                      className={'w-full flex flex-col p-3 rounded-xl border transition-colors text-left ' + (isActive ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-800/50' : 'bg-white border-zinc-100 dark:bg-zinc-800 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700/50')}
+                      className={'w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ' + (isActive ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-800/50' : 'bg-white border-zinc-100 dark:bg-zinc-800 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700/50')}
                     >
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white truncate w-full">{otherEmail}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1 w-full">{c.lastMessage || 'New Chat'}</span>
+                      <div className="relative flex-shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-medium text-lg">
+                          {otherEmail[0].toUpperCase()}
+                        </div>
+                        <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-zinc-800 ${getOnlineStatus(otherEmail) ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white truncate w-full">{friendsProfiles[otherEmail]?.displayName || otherEmail}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1 w-full">{c.lastMessage || 'New Chat'}</span>
+                      </div>
                     </button>
                   );
                 })
@@ -222,9 +285,30 @@ export function Friends() {
         {activeChatId ? (
           <>
             <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-950/50 relative">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                {getOtherParticipant(chats.find(c => c.id === activeChatId)?.participants || [])}
-              </h3>
+              <div className="flex items-center gap-3">
+                {(() => {
+                  const otherEmail = getOtherParticipant(chats.find(c => c.id === activeChatId)?.participants || []);
+                  const isOnline = getOnlineStatus(otherEmail);
+                  return (
+                    <>
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-medium text-lg flex-shrink-0">
+                          {otherEmail[0]?.toUpperCase()}
+                        </div>
+                        <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-zinc-800 ${isOnline ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                      </div>
+                      <div className="flex flex-col">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                          {friendsProfiles[otherEmail]?.displayName || otherEmail}
+                        </h3>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {isOnline ? 'Active now' : 'Offline'}
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
               
               <div className="relative">
                 <button 
