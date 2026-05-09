@@ -25,6 +25,7 @@ export function Friends() {
   const [deleteMessagePrompt, setDeleteMessagePrompt] = useState<string | null>(null);
   const [deleteChatPrompt, setDeleteChatPrompt] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const isSendingRef = useRef(false);
 
   useEffect(() => {
     if (activeChatId && activeTab === 'chats') {
@@ -68,13 +69,18 @@ export function Friends() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = chatInput.trim();
-    if (!text || !activeChatId || isSending) return;
+    if (!text || !activeChatId || isSendingRef.current) return;
     
+    isSendingRef.current = true;
     setIsSending(true);
     setChatInput('');
     try {
       await sendMessage(activeChatId, text);
+    } catch (e) {
+      console.error(e);
+      setChatInput(text);
     } finally {
+      isSendingRef.current = false;
       setIsSending(false);
     }
   };

@@ -108,9 +108,11 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
     const { currentUserProfile, chats } = get();
     if (!currentUserProfile) return '';
 
-    // Check if chat exists
+    // Check if chat exists locally
     const existingChat = chats.find(c => c.participants.includes(withEmail));
-    if (existingChat) return existingChat.id;
+    if (existingChat) {
+      return existingChat.id;
+    }
 
     // Create a new chat
     const participants = [currentUserProfile.email, withEmail].sort();
@@ -127,6 +129,13 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           updatedAt: new Date().toISOString(),
           lastMessage: ''
         });
+      } else {
+        const data = chatSnap.data();
+        if (data.deletedFor?.includes(currentUserProfile.email)) {
+          await updateDoc(chatRef, {
+            deletedFor: arrayRemove(currentUserProfile.email)
+          });
+        }
       }
     } catch (e: any) {
       console.warn("getDoc failed, proceeding with setDoc merge", e);
@@ -135,6 +144,9 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
         participants,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
+      await updateDoc(chatRef, {
+        deletedFor: arrayRemove(currentUserProfile.email)
+      }).catch(() => {});
     }
 
     return chatId;
@@ -153,20 +165,35 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
 
     await updateDoc(doc(db, 'chats', chatId), {
       lastMessage: text,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      deletedFor: []
     });
   },
 
   deleteMessage: async (chatId, messageId, forEveryone) => {
-    const { currentUserProfile } = get();
+    const { currentUserProfile, chats } = get();
     if (!currentUserProfile) return;
 
-    if (forEveryone) {
-      await deleteDoc(doc(db, 'chats', chatId, 'messages', messageId));
-    } else {
-      await updateDoc(doc(db, 'chats', chatId, 'messages', messageId), {
-        deletedFor: arrayUnion(currentUserProfile.email)
-      });
+    try {
+      if (forEveryone) {
+        try {
+          await deleteDoc(doc(db, 'chats', chatId, 'messages', messageId));
+        } catch (e) {
+          console.warn('Failed to delete message, using soft delete fallback', e);
+          const currentChat = chats.find(c => c.id === chatId);
+          if (currentChat) {
+            await updateDoc(doc(db, 'chats', chatId, 'messages', messageId), {
+              deletedFor: currentChat.participants || []
+            });
+          }
+        }
+      } else {
+        await updateDoc(doc(db, 'chats', chatId, 'messages', messageId), {
+          deletedFor: arrayUnion(currentUserProfile.email)
+        });
+      }
+    } catch (e) {
+      console.error("Error deleting message:", e);
     }
   },
 
@@ -174,20 +201,35 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
     const { currentUserProfile } = get();
     if (!currentUserProfile) return;
 
-    if (forEveryone) {
-      const msgsRef = collection(db, 'chats', chatId, 'messages');
-      try {
-        const snap = await getDocs(msgsRef);
-        const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
-        await Promise.all(deletePromises);
-      } catch (e) {
-        console.warn('Failed to delete subcollection messages', e);
+    try {
+      if (forEveryone) {
+        const msgsRef = collection(db, 'chats', chatId, 'messages');
+        try {
+          const snap = await getDocs(msgsRef);
+          const deletePromises = snap.docs.map(d => deleteDoc(d.ref).catch(() => {}));
+          await Promise.all(deletePromises);
+        } catch (e) {
+          console.warn('Failed to delete subcollection messages', e);
+        }
+        try {
+          await deleteDoc(doc(db, 'chats', chatId));
+        } catch (e) {
+          console.warn('Failed to delete chat doc, using soft delete fallback', e);
+          const chatDoc = await getDoc(doc(db, 'chats', chatId));
+          if (chatDoc.exists()) {
+             await updateDoc(doc(db, 'chats', chatId), {
+               deletedFor: chatDoc.data().participants || []
+             });
+          }
+        }
+      } else {
+        await updateDoc(doc(db, 'chats', chatId), {
+          deletedFor: arrayUnion(currentUserProfile.email)
+        });
       }
-      await deleteDoc(doc(db, 'chats', chatId));
-    } else {
-      await updateDoc(doc(db, 'chats', chatId), {
-        deletedFor: arrayUnion(currentUserProfile.email)
-      });
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      alert("Failed to delete chat. Check console for details.");
     }
   }
 }));
