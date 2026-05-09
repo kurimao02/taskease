@@ -66,4 +66,5 @@ export interface Chat {
   updatedAt: any;
   lastMessage?: string;
   deletedFor?: string[];
+  typing?: string[];
 }

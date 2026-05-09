@@ -14,7 +14,8 @@ export function Friends() {
     startChat, 
     sendMessage,
     deleteMessage,
-    deleteChat
+    deleteChat,
+    setTyping
   } = useSocialStore();
   
   const [activeTab, setActiveTab] = useState<'friends' | 'chats'>('friends');
@@ -26,8 +27,25 @@ export function Friends() {
   const [deleteChatPrompt, setDeleteChatPrompt] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const isSendingRef = useRef(false);
+  const typingTimeoutRef = useRef<any>(null);
 
   const [friendsProfiles, setFriendsProfiles] = useState<Record<string, any>>({});
+
+  const handleChatInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setChatInput(e.target.value);
+    if (!activeChatId) return;
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    } else {
+      setTyping(activeChatId, true);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setTyping(activeChatId, false);
+      typingTimeoutRef.current = null;
+    }, 2000);
+  };
 
   useEffect(() => {
     if (!currentUserProfile?.friends?.length) {
@@ -99,6 +117,13 @@ export function Friends() {
     isSendingRef.current = true;
     setIsSending(true);
     setChatInput('');
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+      setTyping(activeChatId, false);
+    }
+
     try {
       await sendMessage(activeChatId, text);
     } catch (e) {
@@ -402,6 +427,18 @@ export function Friends() {
                   )
                 })
               )}
+              {(() => {
+                const activeChat = chats.find(c => c.id === activeChatId);
+                const typingUsers = activeChat?.typing?.filter(email => email !== currentUserProfile.email) || [];
+                if (typingUsers.length > 0) {
+                  return (
+                    <div className="flex items-center gap-2 text-gray-500 text-xs italic animate-pulse mt-2 ml-1">
+                      {typingUsers.length === 1 ? friendsProfiles[typingUsers[0]]?.displayName || typingUsers[0] : 'Several people'} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
 
             {/* Input Box */}
@@ -411,7 +448,7 @@ export function Friends() {
                   type="text"
                   placeholder="Type a message..."
                   value={chatInput}
-                  onChange={e => setChatInput(e.target.value)}
+                  onChange={handleChatInputChange}
                   disabled={isSending}
                   className="flex-1 px-4 py-2 bg-gray-100 dark:bg-zinc-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-gray-100 disabled:opacity-50"
                 />

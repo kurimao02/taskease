@@ -24,6 +24,7 @@ interface SocialStore {
   sendMessage: (chatId: string, text: string) => Promise<void>;
   deleteMessage: (chatId: string, messageId: string, forEveryone: boolean) => Promise<void>;
   deleteChat: (chatId: string, forEveryone: boolean) => Promise<void>;
+  setTyping: (chatId: string, isTyping: boolean) => Promise<void>;
 }
 
 export const useSocialStore = create<SocialStore>((set, get) => ({
@@ -166,8 +167,22 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
     await updateDoc(doc(db, 'chats', chatId), {
       lastMessage: text,
       updatedAt: new Date().toISOString(),
-      deletedFor: []
+      deletedFor: [],
+      typing: arrayRemove(currentUserProfile.email)
     });
+  },
+
+  setTyping: async (chatId, isTyping) => {
+    const { currentUserProfile } = get();
+    if (!currentUserProfile) return;
+
+    try {
+      await updateDoc(doc(db, 'chats', chatId), {
+        typing: isTyping ? arrayUnion(currentUserProfile.email) : arrayRemove(currentUserProfile.email)
+      });
+    } catch (e) {
+      console.warn("setTyping failed:", e);
+    }
   },
 
   deleteMessage: async (chatId, messageId, forEveryone) => {
