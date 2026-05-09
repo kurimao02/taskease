@@ -26,7 +26,6 @@ export function Friends() {
   const [deleteMessagePrompt, setDeleteMessagePrompt] = useState<string | null>(null);
   const [deleteChatPrompt, setDeleteChatPrompt] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
-  const isSendingRef = useRef(false);
   const typingTimeoutRef = useRef<any>(null);
 
   const [friendsProfiles, setFriendsProfiles] = useState<Record<string, any>>({});
@@ -109,12 +108,17 @@ export function Friends() {
     setInviteEmail('');
   };
 
+  const lastSendTimeRef = useRef(0);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = chatInput.trim();
-    if (!text || !activeChatId || isSendingRef.current) return;
     
-    isSendingRef.current = true;
+    // Prevent sending faster than every 1000ms
+    const now = Date.now();
+    if (!text || !activeChatId || now - lastSendTimeRef.current < 1000) return;
+    
+    lastSendTimeRef.current = now;
     setIsSending(true);
     setChatInput('');
     
@@ -131,10 +135,6 @@ export function Friends() {
       setChatInput(text);
     } finally {
       setIsSending(false);
-      // Keep lock for a short duration to prevent double-sends from fast Enter key combinations
-      setTimeout(() => {
-        isSendingRef.current = false;
-      }, 500);
     }
   };
 
