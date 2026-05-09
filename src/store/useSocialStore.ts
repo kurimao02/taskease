@@ -25,6 +25,8 @@ interface SocialStore {
   deleteMessage: (chatId: string, messageId: string, forEveryone: boolean) => Promise<void>;
   deleteChat: (chatId: string, forEveryone: boolean) => Promise<void>;
   setTyping: (chatId: string, isTyping: boolean) => Promise<void>;
+  removeFriend: (friendEmail: string) => Promise<void>;
+  markChatAsRead: (chatId: string) => Promise<void>;
 }
 
 export const useSocialStore = create<SocialStore>((set, get) => ({
@@ -105,6 +107,54 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
     });
   },
 
+  removeFriend: async (friendEmail) => {
+    const { currentUserProfile } = get();
+    if (!currentUserProfile) return;
+
+    try {
+      await updateDoc(doc(db, 'users', currentUserProfile.id), {
+        friends: arrayRemove(friendEmail)
+      });
+      
+      const q = query(collection(db, 'users'), where('email', '==', friendEmail), limit(1));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        await updateDoc(snap.docs[0].ref, {
+          friends: arrayRemove(currentUserProfile.email)
+        });
+      }
+    } catch (e) {
+      console.error("Failed to remove friend", e);
+    }
+  },
+
+  markChatAsRead: async (chatId) => {
+    const { currentUserProfile } = get();
+    if (!currentUserProfile) return;
+    
+    try {
+      const msgsRef = collection(db, 'chats', chatId, 'messages');
+      const q = query(msgsRef, orderBy('createdAt', 'desc'), limit(20));
+      const snap = await getDocs(q);
+      
+      const updatePromises: Promise<void>[] = [];
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.senderEmail !== currentUserProfile.email && !data.readBy?.includes(currentUserProfile.email)) {
+          updatePromises.push(updateDoc(d.ref, {
+            readBy: arrayUnion(currentUserProfile.email)
+          }).catch(() => {}));
+        }
+      });
+      
+      if (updatePromises.length > 0) {
+        await Promise.all(updatePromises);
+      }
+    } catch (e) {
+      console.warn("markChatAsRead failed:", e);
+    }
+  },
+
   startChat: async (withEmail) => {
     const { currentUserProfile, chats } = get();
     if (!currentUserProfile) return '';
@@ -161,7 +211,8 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
     await addDoc(messagesRef, {
       text,
       senderEmail: currentUserProfile.email,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      readBy: [currentUserProfile.email]
     });
 
     await updateDoc(doc(db, 'chats', chatId), {

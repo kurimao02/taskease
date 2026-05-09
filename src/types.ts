@@ -58,6 +58,7 @@ export interface ChatMessage {
   senderEmail: string;
   createdAt: any;
   deletedFor?: string[];
+  readBy?: string[];
 }
 
 export interface Chat {

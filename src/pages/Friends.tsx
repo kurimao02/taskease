@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSocialStore } from '../store/useSocialStore';
 import { auth, db } from '../firebase';
-import { UserPlus, MessageSquare, Send, Check, X, Users, Search, Trash2, MoreVertical } from 'lucide-react';
+import { UserPlus, MessageSquare, Send, Check, X, Users, Search, Trash2, MoreVertical, CheckCheck, UserMinus } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, doc, limit } from 'firebase/firestore';
 
 export function Friends() {
@@ -15,7 +15,9 @@ export function Friends() {
     sendMessage,
     deleteMessage,
     deleteChat,
-    setTyping
+    setTyping,
+    removeFriend,
+    markChatAsRead
   } = useSocialStore();
   
   const [activeTab, setActiveTab] = useState<'friends' | 'chats'>('friends');
@@ -90,16 +92,23 @@ export function Friends() {
     );
     const unsub = onSnapshot(q, (snap) => {
       const msgs: any[] = [];
+      let hasUnread = false;
       snap.forEach(d => {
         const data = d.data();
         if (!data.deletedFor?.includes(currentUserProfile?.email)) {
           msgs.push({ id: d.id, ...data });
         }
+        if (data.senderEmail !== currentUserProfile?.email && !data.readBy?.includes(currentUserProfile?.email)) {
+          hasUnread = true;
+        }
       });
       setMessages(msgs.reverse());
+      if (hasUnread) {
+        markChatAsRead(activeChatId);
+      }
     });
     return () => unsub();
-  }, [activeChatId, currentUserProfile?.email]);
+  }, [activeChatId, currentUserProfile?.email, markChatAsRead]);
 
   const handleSendRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -252,13 +261,26 @@ export function Friends() {
                             </div>
                           </div>
                           
-                          <button 
-                            onClick={() => handleStartChat(email)}
-                            className="p-2 ml-2 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 rounded-lg transition-colors flex-shrink-0"
-                            title="Message"
-                          >
-                            <MessageSquare size={16} />
-                          </button>
+                          <div className="flex items-center">
+                            <button 
+                              onClick={() => handleStartChat(email)}
+                              className="p-2 ml-2 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 rounded-lg transition-colors flex-shrink-0"
+                              title="Message"
+                            >
+                              <MessageSquare size={16} />
+                            </button>
+                            <button 
+                              onClick={() => {
+                                if (confirm(`Remove ${profile?.displayName || email} from friends?`)) {
+                                  removeFriend(email);
+                                }
+                              }}
+                              className="p-2 ml-1 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/30 rounded-lg transition-colors flex-shrink-0"
+                              title="Remove friend"
+                            >
+                              <UserMinus size={16} />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -420,9 +442,20 @@ export function Friends() {
                           <p className="text-sm">{msg.text}</p>
                         </div>
                       </div>
-                      <span className="text-[10px] text-gray-400 mt-1 mx-1">
-                        {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </span>
+                      <div className="flex items-center gap-1 mt-1 mx-1">
+                        <span className="text-[10px] text-gray-400">
+                          {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </span>
+                        {isMe && (
+                          <span className="mt-0.5">
+                            {msg.readBy?.length > 1 ? (
+                              <CheckCheck size={12} className="text-blue-500" />
+                            ) : (
+                              <Check size={12} className="text-gray-400" />
+                            )}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   )
                 })
