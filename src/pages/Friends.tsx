@@ -9,6 +9,7 @@ export function Friends() {
     currentUserProfile, 
     chats, 
     sendFriendRequest, 
+    cancelFriendRequest,
     acceptFriendRequest, 
     rejectFriendRequest, 
     startChat, 
@@ -227,6 +228,25 @@ export function Friends() {
                           </button>
                           <button onClick={() => rejectFriendRequest(email)} className="flex-1 py-1.5 flex items-center justify-center gap-1 bg-gray-100 text-gray-600 dark:bg-zinc-700 dark:text-gray-400 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-zinc-600">
                             <X size={14}/> Ignore
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sent Requests */}
+              {currentUserProfile.sentRequests?.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold text-blue-500 uppercase mb-3">Sent Requests</h3>
+                  <div className="space-y-2">
+                    {currentUserProfile.sentRequests.map(email => (
+                      <div key={email} className="flex flex-col gap-2 p-3 bg-white dark:bg-zinc-800 rounded-xl border border-blue-200 dark:border-blue-900/30">
+                        <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{email}</span>
+                        <div className="flex gap-2">
+                          <button onClick={() => cancelFriendRequest(email)} className="flex-1 py-1.5 flex items-center justify-center gap-1 bg-gray-100 text-gray-600 dark:bg-zinc-700 dark:text-gray-400 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-zinc-600">
+                            <X size={14}/> Cancel
                           </button>
                         </div>
                       </div>

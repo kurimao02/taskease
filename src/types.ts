@@ -48,6 +48,7 @@ export interface UserProfile {
   photoURL?: string;
   friends: string[]; // array of emails
   friendRequests: string[]; // array of emails
+  sentRequests?: string[]; // array of emails
   lastActive?: any;
   isOnline?: boolean;
 }

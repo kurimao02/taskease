@@ -17,6 +17,7 @@ interface SocialStore {
 
   initializeUserProfile: (user: any) => Promise<void>;
   sendFriendRequest: (toEmail: string) => Promise<void>;
+  cancelFriendRequest: (toEmail: string) => Promise<void>;
   acceptFriendRequest: (fromEmail: string) => Promise<void>;
   rejectFriendRequest: (fromEmail: string) => Promise<void>;
   
@@ -52,7 +53,8 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
         displayName: user.displayName || '',
         photoURL: user.photoURL || '',
         friends: [],
-        friendRequests: []
+        friendRequests: [],
+        sentRequests: []
       });
     }
   },
@@ -67,11 +69,35 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
 
     if (!snapshot.empty) {
       const toUserDoc = snapshot.docs[0];
+      
+      await updateDoc(doc(db, 'users', currentUserProfile.id), {
+        sentRequests: arrayUnion(toEmail)
+      });
+
       await updateDoc(doc(db, 'users', toUserDoc.id), {
         friendRequests: arrayUnion(currentUserProfile.email)
       });
     } else {
       alert("User not found!");
+    }
+  },
+
+  cancelFriendRequest: async (toEmail) => {
+    const { currentUserProfile } = get();
+    if (!currentUserProfile) return;
+
+    await updateDoc(doc(db, 'users', currentUserProfile.id), {
+      sentRequests: arrayRemove(toEmail)
+    });
+
+    const q = query(collection(db, 'users'), where('email', '==', toEmail));
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      const toUserDoc = snapshot.docs[0];
+      await updateDoc(doc(db, 'users', toUserDoc.id), {
+        friendRequests: arrayRemove(currentUserProfile.email)
+      });
     }
   },
 
@@ -93,6 +119,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       });
 
       await updateDoc(doc(db, 'users', fromUserDoc.id), {
+        sentRequests: arrayRemove(currentUserProfile.email),
         friends: arrayUnion(currentUserProfile.email)
       });
     }
@@ -105,6 +132,16 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
     await updateDoc(doc(db, 'users', currentUserProfile.id), {
       friendRequests: arrayRemove(fromEmail)
     });
+
+    const q = query(collection(db, 'users'), where('email', '==', fromEmail));
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      const fromUserDoc = snapshot.docs[0];
+      await updateDoc(doc(db, 'users', fromUserDoc.id), {
+        sentRequests: arrayRemove(currentUserProfile.email)
+      });
+    }
   },
 
   removeFriend: async (friendEmail) => {
