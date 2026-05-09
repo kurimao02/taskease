@@ -202,27 +202,32 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
     if (!currentUserProfile) return;
 
     try {
+      const msgsRef = collection(db, 'chats', chatId, 'messages');
+      const snap = await getDocs(msgsRef);
+      
       if (forEveryone) {
-        const msgsRef = collection(db, 'chats', chatId, 'messages');
         try {
-          const snap = await getDocs(msgsRef);
-          const deletePromises = snap.docs.map(d => deleteDoc(d.ref).catch(() => {}));
+          const deletePromises = snap.docs.map(d => deleteDoc(d.ref).catch(e => console.error(e)));
           await Promise.all(deletePromises);
         } catch (e) {
           console.warn('Failed to delete subcollection messages', e);
         }
+        
         try {
           await deleteDoc(doc(db, 'chats', chatId));
         } catch (e) {
-          console.warn('Failed to delete chat doc, using soft delete fallback', e);
-          const chatDoc = await getDoc(doc(db, 'chats', chatId));
-          if (chatDoc.exists()) {
-             await updateDoc(doc(db, 'chats', chatId), {
-               deletedFor: chatDoc.data().participants || []
-             });
-          }
+          console.warn('Failed to delete chat doc', e);
         }
       } else {
+        try {
+          const updatePromises = snap.docs.map(d => updateDoc(d.ref, {
+            deletedFor: arrayUnion(currentUserProfile.email)
+          }).catch(e => console.error(e)));
+          await Promise.all(updatePromises);
+        } catch (e) {
+          console.warn('Failed to soft delete subcollection messages', e);
+        }
+
         await updateDoc(doc(db, 'chats', chatId), {
           deletedFor: arrayUnion(currentUserProfile.email)
         });

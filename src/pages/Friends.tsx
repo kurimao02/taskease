@@ -80,8 +80,11 @@ export function Friends() {
       console.error(e);
       setChatInput(text);
     } finally {
-      isSendingRef.current = false;
       setIsSending(false);
+      // Keep lock for a short duration to prevent double-sends from fast Enter key combinations
+      setTimeout(() => {
+        isSendingRef.current = false;
+      }, 500);
     }
   };
 
