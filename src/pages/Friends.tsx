@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocialStore } from '../store/useSocialStore';
 import { auth, db } from '../firebase';
-import { UserPlus, MessageSquare, Send, Check, X, Users, Search, Trash2, MoreVertical, CheckCheck, UserMinus } from 'lucide-react';
+import { UserPlus, MessageSquare, Send, Check, X, Users, Search, Trash2, MoreVertical, CheckCheck, UserMinus, ArrowLeft } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, doc, limit, where } from 'firebase/firestore';
 
 export function Friends() {
@@ -177,10 +177,10 @@ export function Friends() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto h-[calc(100vh-8rem)] flex flex-col md:flex-row bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm animate-in fade-in duration-500">
+    <div className="w-full flex-1 flex bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm animate-in fade-in duration-500">
       
       {/* Sidebar */}
-      <div className="w-full md:w-80 flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50">
+      <div className={`w-full md:w-80 flex-col border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 ${activeChatId ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex gap-2">
           <button 
             onClick={() => { setActiveTab('friends'); setActiveChatId(null); }}
@@ -348,11 +348,17 @@ export function Friends() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-zinc-900">
+      <div className={`flex-1 flex-col bg-white dark:bg-zinc-900 ${!activeChatId ? 'hidden md:flex' : 'flex'}`}>
         {activeChatId ? (
           <>
             <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-950/50 relative">
               <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setActiveChatId(null)}
+                  className="md:hidden p-2 -ml-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  <ArrowLeft size={20} />
+                </button>
                 {(() => {
                   const otherEmail = getOtherParticipant(chats.find(c => c.id === activeChatId)?.participants || []);
                   const isOnline = getOnlineStatus(otherEmail);

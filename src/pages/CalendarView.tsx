@@ -93,7 +93,7 @@ export function CalendarView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900 dark:text-white tracking-tight">Calendar</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1.5 text-sm">Plan your tasks across the month.</p>

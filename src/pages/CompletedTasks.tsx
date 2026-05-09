@@ -43,18 +43,18 @@ export function CompletedTasks() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700/50 shadow-sm flex items-center gap-4">
-          <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white dark:bg-zinc-800 p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-4">
+          <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex shrink-0 items-center justify-center text-emerald-600 dark:text-emerald-400">
             <CheckSquare size={26} strokeWidth={2.5} />
           </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Completed</p>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Completed</p>
             <p className="text-3xl font-light text-gray-900 dark:text-white tracking-tight">{completedTasks.length}</p>
           </div>
         </div>
         
-        <div className="md:col-span-2 bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700/50 shadow-sm flex flex-col justify-center">
+        <div className="col-span-1 lg:col-span-2 bg-white dark:bg-zinc-800 p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Overall Progress</p>
             <p className="text-lg font-semibold text-gray-900 dark:text-white">{completionPercentage}%</p>
