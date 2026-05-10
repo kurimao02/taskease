@@ -69,7 +69,7 @@ export function CompletedTasks() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm flex flex-col sm:flex-row gap-4">
+      <div className="bg-white dark:bg-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
           <input 
@@ -77,13 +77,13 @@ export function CompletedTasks() {
             placeholder="Search completed tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-transparent rounded-xl focus:ring-2 focus:ring-indigo-500/50 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-shadow"
+            className="w-full pl-11 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-900/50 border border-transparent rounded-xl focus:ring-2 focus:ring-indigo-500/50 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-shadow"
           />
         </div>
         <select 
           value={subjectFilter}
           onChange={(e) => setSubjectFilter(e.target.value)}
-          className="px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-transparent rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 min-w-[150px] transition-shadow"
+          className="px-4 py-2.5 bg-gray-50 dark:bg-zinc-900/50 border border-transparent rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 min-w-[150px] transition-shadow"
         >
           <option value="all">All Subjects</option>
           {subjects.map(sub => (
@@ -93,9 +93,9 @@ export function CompletedTasks() {
       </div>
 
       {/* Task List */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-3xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm overflow-hidden">
         {filteredTasks.length > 0 ? (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
+          <div className="divide-y divide-gray-100 dark:divide-zinc-700/50">
             {filteredTasks.map(task => (
               <div key={task.id} className="p-5 hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors flex items-start sm:items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
@@ -127,7 +127,7 @@ export function CompletedTasks() {
           </div>
         ) : (
           <div className="p-12 text-center">
-            <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gray-50 dark:bg-zinc-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckSquare size={32} className="text-gray-400 dark:text-gray-600" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">No completed tasks found</h3>
