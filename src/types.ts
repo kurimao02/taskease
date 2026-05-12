@@ -67,6 +67,8 @@ export interface Chat {
   participants: string[]; // array of emails
   updatedAt: any;
   lastMessage?: string;
+  lastMessageSenderId?: string;
+  readBy?: string[];
   deletedFor?: string[];
   typing?: string[];
 }

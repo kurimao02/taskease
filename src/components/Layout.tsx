@@ -7,6 +7,7 @@ import { useThemeStore } from '@/src/store/useThemeStore';
 import { isToday, parseISO } from 'date-fns';
 import { User } from 'firebase/auth';
 import { logOut } from '@/src/firebase';
+import { useSocialStore } from '@/src/store/useSocialStore';
 
 interface LayoutProps {
   user: User;
@@ -18,12 +19,63 @@ export function Layout({ user }: LayoutProps) {
   const tasks = useTaskStore(state => state.tasks);
   const { theme, toggleTheme } = useThemeStore();
   
+  const chats = useSocialStore(state => state.chats);
+  const currentUserProfile = useSocialStore(state => state.currentUserProfile);
+  
+  const unreadChats = chats.filter(c => c.lastMessageSenderId !== user.email && c.lastMessage && !c.readBy?.includes(user.email));
+  const friendRequestsCount = currentUserProfile?.friendRequests?.length || 0;
+  
   const urgentTasks = tasks.filter(t => 
     !t.completed && 
     t.priority === 'high' && 
     isToday(parseISO(t.dueDate))
   );
-  const highPriorityDueSoon = urgentTasks.length;
+  
+  const unreadCount = urgentTasks.length + unreadChats.length + friendRequestsCount;
+
+  const NotificationsPanel = () => (
+    <div className="absolute right-0 mt-2 w-72 md:w-80 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden z-50">
+      <div className="p-3 border-b border-zinc-100 dark:border-zinc-700 flex items-center justify-between">
+        <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+        {unreadCount > 0 && (
+          <span className="text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 px-2 py-0.5 rounded-full font-medium">
+            {unreadCount} new
+          </span>
+        )}
+      </div>
+      <div className="max-h-80 overflow-y-auto custom-scrollbar">
+        {unreadCount === 0 ? (
+          <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            <Bell size={24} className="mx-auto mb-2 opacity-20" />
+            You're all caught up! 🎉
+          </div>
+        ) : (
+          <div className="divide-y divide-zinc-100 dark:divide-zinc-700/50">
+            {friendRequestsCount > 0 && (
+              <NavLink to="/friends" onClick={() => setIsNotificationsOpen(false)} className="block p-3 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 bg-indigo-50/50 dark:bg-indigo-900/10 transition-colors">
+                <p className="text-sm font-medium text-indigo-700 dark:text-indigo-400">New Friend {friendRequestsCount > 1 ? 'Requests' : 'Request'}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">You have {friendRequestsCount} pending {friendRequestsCount > 1 ? 'requests' : 'request'}</p>
+              </NavLink>
+            )}
+            
+            {unreadChats.map(chat => (
+              <NavLink key={chat.id} to="/friends" onClick={() => setIsNotificationsOpen(false)} className="block p-3 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 bg-blue-50/50 dark:bg-blue-900/10 transition-colors">
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-400 truncate">New message from {chat.participants.find(p => p !== user.email)}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 truncate">"{chat.lastMessage}"</p>
+              </NavLink>
+            ))}
+
+            {urgentTasks.map(task => (
+              <div key={task.id} className="p-3 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{task.title}</p>
+                <p className="text-xs text-red-500 dark:text-red-400 mt-1 font-medium">Due today • {task.subject}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   const navItems = [
     { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -59,31 +111,11 @@ export function Layout({ user }: LayoutProps) {
               className="relative p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
               <Bell size={20} />
-              {highPriorityDueSoon > 0 && (
+              {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"></span>
               )}
             </button>
-            {isNotificationsOpen && (
-              <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden z-50">
-                <div className="p-3 border-b border-gray-100 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Urgent Tasks</h3>
-                </div>
-                <div className="max-h-64 overflow-y-auto custom-scrollbar">
-                  {urgentTasks.length > 0 ? (
-                    urgentTasks.map(task => (
-                      <div key={task.id} className="p-3 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{task.title}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Due today • {task.subject}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                      No urgent tasks due today! 🎉
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {isNotificationsOpen && <NotificationsPanel />}
           </div>
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -184,31 +216,11 @@ export function Layout({ user }: LayoutProps) {
                 className="relative p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
               >
                 <Bell size={20} />
-                {highPriorityDueSoon > 0 && (
+                {unreadCount > 0 && (
                   <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"></span>
                 )}
               </button>
-              {isNotificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden z-50">
-                  <div className="p-3 border-b border-gray-100 dark:border-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Urgent Tasks</h3>
-                  </div>
-                  <div className="max-h-80 overflow-y-auto custom-scrollbar">
-                    {urgentTasks.length > 0 ? (
-                      urgentTasks.map(task => (
-                        <div key={task.id} className="p-3 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{task.title}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Due today • {task.subject}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                        No urgent tasks due today! 🎉
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              {isNotificationsOpen && <NotificationsPanel />}
             </div>
           </div>
         </header>

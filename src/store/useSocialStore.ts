@@ -170,6 +170,10 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
     if (!currentUserProfile) return;
     
     try {
+      await updateDoc(doc(db, 'chats', chatId), {
+        readBy: arrayUnion(currentUserProfile.email)
+      }).catch(() => {});
+
       const msgsRef = collection(db, 'chats', chatId, 'messages');
       const q = query(msgsRef, orderBy('createdAt', 'desc'), limit(20));
       const snap = await getDocs(q);
@@ -215,7 +219,8 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           id: chatId,
           participants,
           updatedAt: new Date().toISOString(),
-          lastMessage: ''
+          lastMessage: '',
+          readBy: []
         });
       } else {
         const data = chatSnap.data();
@@ -254,6 +259,8 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
 
     await updateDoc(doc(db, 'chats', chatId), {
       lastMessage: text,
+      lastMessageSenderId: currentUserProfile.email,
+      readBy: [currentUserProfile.email],
       updatedAt: new Date().toISOString(),
       deletedFor: [],
       typing: arrayRemove(currentUserProfile.email)
