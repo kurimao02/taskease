@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, CheckSquare, Users, MessageSquare, Bell, User as UserIcon, Menu, X, Sun, Moon, LogOut } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, CheckSquare, Users, MessageSquare, Bell, User as UserIcon, Menu, X, Sun, Moon, LogOut, ClipboardList } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { useTaskStore } from '@/src/store/useTaskStore';
 import { useThemeStore } from '@/src/store/useThemeStore';
@@ -95,10 +95,10 @@ export function Layout({ user }: LayoutProps) {
 
         <div className="flex items-center gap-2">
           <NavLink to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm">
-              <CheckSquare size={18} strokeWidth={2.5} />
+            <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center text-white dark:text-gray-900 shadow-sm">
+              <ClipboardList size={18} strokeWidth={2.5} />
             </div>
-            <span className="font-bold text-xl tracking-tight">TaskEase</span>
+            <span className="font-bold text-xl tracking-tight dark:text-white">TaskEase</span>
           </NavLink>
         </div>
         <div className="flex items-center gap-3">
@@ -141,8 +141,8 @@ export function Layout({ user }: LayoutProps) {
       )}>
         <div className="hidden lg:flex flex-col border-b border-zinc-200 dark:border-zinc-800/50">
           <NavLink to="/" className="flex items-center gap-3 p-6 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0">
-              <CheckSquare size={18} strokeWidth={2.5} />
+            <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center text-white dark:text-gray-900 shadow-sm shrink-0">
+              <ClipboardList size={18} strokeWidth={2.5} />
             </div>
             <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">TaskEase</span>
           </NavLink>
