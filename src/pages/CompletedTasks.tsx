@@ -34,8 +34,8 @@ export function CompletedTasks() {
     : 0;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="flex flex-col animate-in fade-in duration-500 space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900 dark:text-white tracking-tight">Completed Tasks</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1.5 text-sm">Review your achievements and past work.</p>
@@ -43,7 +43,7 @@ export function CompletedTasks() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 shrink-0">
         <div className="bg-white dark:bg-zinc-800 p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-4">
           <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex shrink-0 items-center justify-center text-emerald-600 dark:text-emerald-400">
             <CheckSquare size={26} strokeWidth={2.5} />
@@ -69,7 +69,7 @@ export function CompletedTasks() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row gap-4">
+      <div className="bg-white dark:bg-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row gap-4 shrink-0">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
           <input 
@@ -93,9 +93,9 @@ export function CompletedTasks() {
       </div>
 
       {/* Task List */}
-      <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm overflow-hidden flex flex-col">
         {filteredTasks.length > 0 ? (
-          <div className="divide-y divide-gray-100 dark:divide-zinc-700/50">
+          <div className="divide-y divide-gray-100 dark:divide-zinc-700/50 max-h-[350px] overflow-y-auto custom-scrollbar">
             {filteredTasks.map(task => (
               <div key={task.id} className="p-5 hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors flex items-start sm:items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">

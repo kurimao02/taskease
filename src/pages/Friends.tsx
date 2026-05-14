@@ -158,7 +158,54 @@ export function Friends() {
     }
   };
 
-  if (!currentUserProfile) return <div>Loading Profile...</div>;
+  if (!currentUserProfile) {
+    return (
+      <div className="w-full flex-1 flex bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+        {/* Sidebar Skeleton */}
+        <div className="w-1/3 md:w-80 border-r border-zinc-200 dark:border-zinc-800 flex flex-col p-4 animate-pulse space-y-6">
+          <div className="h-10 w-full bg-zinc-100 dark:bg-zinc-800 rounded-lg"></div>
+          <div className="flex gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-4">
+            <div className="flex-1 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-lg"></div>
+            <div className="flex-1 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-lg"></div>
+          </div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-1/2 bg-zinc-100 dark:bg-zinc-800 rounded"></div>
+                  <div className="h-3 w-3/4 bg-zinc-100 dark:bg-zinc-800 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Main Area Skeleton */}
+        <div className="flex-1 hidden md:flex flex-col animate-pulse">
+          <div className="h-16 border-b border-zinc-200 dark:border-zinc-800 flex items-center px-6 gap-4">
+            <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800"></div>
+            <div className="h-5 w-32 bg-zinc-100 dark:bg-zinc-800 rounded"></div>
+          </div>
+          <div className="flex-1 p-6 space-y-6 bg-zinc-50 dark:bg-zinc-900/50">
+            <div className="flex justify-end">
+              <div className="h-12 w-1/3 bg-zinc-200 dark:bg-zinc-800 rounded-2xl rounded-tr-sm bg-indigo-100/50 dark:bg-indigo-900/20"></div>
+            </div>
+            <div className="flex justify-start">
+              <div className="h-12 w-1/2 bg-zinc-200 dark:bg-zinc-800 rounded-2xl rounded-tl-sm bg-white dark:bg-zinc-800"></div>
+            </div>
+            <div className="flex justify-end">
+              <div className="h-12 w-1/4 bg-zinc-200 dark:bg-zinc-800 rounded-2xl rounded-tr-sm bg-indigo-100/50 dark:bg-indigo-900/20"></div>
+            </div>
+          </div>
+          <div className="h-20 border-t border-zinc-200 dark:border-zinc-800 flex items-center px-6 gap-4 bg-white dark:bg-zinc-900">
+            <div className="flex-1 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-xl"></div>
+            <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-xl"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getOtherParticipant = (participants: string[]) => {
     return participants.find(p => p !== currentUserProfile.email) || 'Unknown';

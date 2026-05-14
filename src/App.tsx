@@ -210,7 +210,47 @@ export default function App() {
   }, [personalTasks, groupTasks, setTasks]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">Loading...</div>;
+    return (
+      <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 overflow-hidden">
+        {/* Sidebar Skeleton */}
+        <div className="hidden lg:flex flex-col w-72 border-r border-zinc-200 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-900/50 p-6 space-y-8 animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-zinc-200 dark:bg-zinc-800"></div>
+            <div className="h-6 w-32 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+          </div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded bg-zinc-200 dark:bg-zinc-800"></div>
+                <div className="h-4 w-2/3 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Main Content Skeleton */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="h-20 flex items-center justify-end px-8 border-b border-zinc-200 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-900/50 animate-pulse">
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
+              <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
+            </div>
+          </header>
+          <main className="flex-1 p-8 overflow-y-auto w-full max-w-7xl mx-auto space-y-8">
+            <div className="h-8 w-64 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-white/50 dark:bg-zinc-900/50 h-32 rounded-3xl border border-zinc-200 dark:border-zinc-800 animate-pulse"></div>
+              ))}
+            </div>
+            <div className="flex flex-col lg:flex-row gap-6 h-[500px]">
+              <div className="flex-1 bg-white/50 dark:bg-zinc-900/50 rounded-3xl border border-zinc-200 dark:border-zinc-800 animate-pulse"></div>
+              <div className="w-full lg:w-1/3 bg-white/50 dark:bg-zinc-900/50 rounded-3xl border border-zinc-200 dark:border-zinc-800 animate-pulse"></div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
   }
 
   return (

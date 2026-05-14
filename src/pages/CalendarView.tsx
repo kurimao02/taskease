@@ -46,21 +46,21 @@ export function CalendarView() {
           <div
             key={day.toString()}
             className={cn(
-              "min-h-[120px] p-2 border-b border-r border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50",
+              "h-full min-h-0 flex flex-col p-1.5 sm:p-2 border-b border-r border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50",
               !isSameMonth(day, monthStart) ? "text-gray-400 dark:text-gray-600 bg-gray-50/50 dark:bg-gray-900/30" : "text-gray-900 dark:text-gray-100",
               isSameDay(day, new Date()) ? "bg-indigo-50/30 dark:bg-indigo-900/20" : ""
             )}
           >
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start shrink-0">
               <span className={cn(
-                "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full",
+                "text-xs sm:text-sm font-medium w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full",
                 isSameDay(day, new Date()) ? "bg-indigo-600 text-white" : ""
               )}>
                 {formattedDate}
               </span>
             </div>
             
-            <div className="mt-2 space-y-1">
+            <div className="mt-1 sm:mt-2 space-y-1 flex-1 overflow-y-auto custom-scrollbar pr-1">
               {dayTasks.map(task => (
                 <div
                   key={task.id}
@@ -82,7 +82,7 @@ export function CalendarView() {
         day = addDays(day, 1);
       }
       rows.push(
-        <div className="grid grid-cols-7" key={day.toString()}>
+        <div className="grid grid-cols-7 min-h-[70px] flex-1" key={day.toString()}>
           {days}
         </div>
       );
@@ -92,8 +92,8 @@ export function CalendarView() {
   }, [currentDate, tasks]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 h-full flex flex-col">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+    <div className="space-y-4 animate-in fade-in duration-500 h-full flex flex-col min-h-0">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900 dark:text-white tracking-tight">Calendar</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1.5 text-sm">Plan your tasks across the month.</p>
@@ -122,14 +122,14 @@ export function CalendarView() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-3xl shadow-sm overflow-hidden flex-1 flex flex-col">
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 flex items-center justify-between">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-3xl shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 flex items-center justify-between shrink-0">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
             {format(currentDate, 'MMMM yyyy')}
           </h2>
         </div>
         
-        <div className="grid grid-cols-7 border-b border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800/80">
+        <div className="grid grid-cols-7 border-b border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800/80 shrink-0">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
             <div key={day} className="py-3 text-center text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider border-r border-gray-100 dark:border-gray-700/50 last:border-r-0">
               {day}
@@ -137,7 +137,7 @@ export function CalendarView() {
           ))}
         </div>
         
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col">
           {days}
         </div>
       </div>

@@ -225,8 +225,8 @@ export function Layout({ user }: LayoutProps) {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar flex flex-col">
-          <div className="max-w-6xl w-full mx-auto flex-1 flex flex-col">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar flex flex-col min-h-0">
+          <div className="max-w-6xl w-full mx-auto flex-1 flex flex-col min-h-0">
             <Outlet />
           </div>
         </div>

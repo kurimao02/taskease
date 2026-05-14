@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, Filter, CheckCircle2, Circle, Clock, Calendar as CalendarIcon, LayoutList, LayoutGrid } from 'lucide-react';
 import { useTaskStore, Task, TaskStatus } from '@/src/store/useTaskStore';
 import { TaskModal } from '@/src/components/TaskModal';
 import { isToday, isThisWeek, parseISO, format, isAfter, startOfToday } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { cn } from '@/src/lib/utils';
 import { useThemeStore } from '@/src/store/useThemeStore';
+import { motion, animate } from 'motion/react';
 
 const priorityColors = {
   high: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/50',
@@ -61,9 +61,24 @@ export function Dashboard() {
         { name: 'Completed', value: completed, color: '#10b981' },
         { name: 'Pending', value: pending, color: theme === 'dark' ? '#818cf8' : '#6366f1' }
       ],
-      percentage
+      percentage,
+      completed,
+      pending,
+      total: thisWeekTasks.length
     };
   }, [tasks, theme]);
+
+  const [displayPercentage, setDisplayPercentage] = useState(0);
+  useEffect(() => {
+    const controls = animate(0, progressData.percentage, {
+      duration: 1.5,
+      ease: "easeOut",
+      onUpdate: (value) => {
+        setDisplayPercentage(Math.round(value));
+      }
+    });
+    return controls.stop;
+  }, [progressData.percentage]);
 
   const handleEditTask = (task: Task) => {
     setTaskToEdit(task);
@@ -214,13 +229,13 @@ export function Dashboard() {
               key={status}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, status)}
-              className="bg-zinc-50/50 dark:bg-zinc-900/20 p-4 rounded-3xl border border-zinc-200/50 dark:border-zinc-800 flex flex-col min-h-[500px]"
+              className="bg-zinc-50/50 dark:bg-zinc-900/20 p-4 rounded-3xl border border-zinc-200/50 dark:border-zinc-800 flex flex-col h-[calc(100vh-220px)] min-h-[400px] max-h-[800px]"
             >
-              <div className="flex items-center justify-between mb-4 px-2">
+              <div className="flex items-center justify-between mb-4 px-2 shrink-0">
                 <h3 className="font-semibold text-zinc-900 dark:text-white capitalize">
                   {status === 'todo' ? 'To Do' : status.replace('-', ' ')}
                 </h3>
-                <span className="bg-white dark:bg-zinc-800 text-gray-500 py-1 px-2.5 rounded-full text-xs font-medium shadow-sm">
+                <span className="bg-white dark:bg-zinc-800 text-gray-500 py-1 px-2.5 rounded-full text-xs font-medium shadow-sm shrink-0">
                   {filteredTasks.filter(t => 
                     status === 'done' ? (t.completed || t.status === 'done') :
                     status === 'in-progress' ? (t.status === 'in-progress' && !t.completed) :
@@ -228,7 +243,7 @@ export function Dashboard() {
                   ).length}
                 </span>
               </div>
-              <div className="flex-1 space-y-3">
+              <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                 {filteredTasks
                   .filter(t => 
                     status === 'done' ? (t.completed || t.status === 'done') :
@@ -260,7 +275,7 @@ export function Dashboard() {
               </div>
               
               {todayTasks.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   {todayTasks.map(task => (
                     <TaskItem key={task.id} task={task} />
                   ))}
@@ -304,8 +319,9 @@ export function Dashboard() {
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-8">Weekly Progress</h2>
               
               <div className="flex items-center justify-center mb-10 relative">
-                <div className="w-36 h-36 rounded-full border-[10px] border-zinc-50 dark:border-zinc-800/50 flex items-center justify-center relative shadow-inner">
-                  <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+                <div className="w-36 h-36 flex items-center justify-center relative shadow-inner rounded-full bg-zinc-50 dark:bg-zinc-800/20">
+                  <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 144 144">
+                    {/* Background track */}
                     <circle
                       cx="72"
                       cy="72"
@@ -313,40 +329,49 @@ export function Dashboard() {
                       stroke="currentColor"
                       strokeWidth="10"
                       fill="transparent"
-                      className="text-indigo-600 dark:text-indigo-500 transition-all duration-1000 ease-out"
+                      className="text-zinc-100 dark:text-zinc-800/50"
+                    />
+                    {/* Progress indicator */}
+                    <motion.circle
+                      cx="72"
+                      cy="72"
+                      r="62"
+                      stroke="currentColor"
+                      strokeWidth="10"
+                      fill="transparent"
+                      className="text-indigo-600 dark:text-indigo-500"
                       strokeDasharray={389.55}
-                      strokeDashoffset={389.55 - (389.55 * progressData.percentage) / 100}
+                      initial={{ strokeDashoffset: 389.55 }}
+                      animate={{ strokeDashoffset: 389.55 - (389.55 * progressData.percentage) / 100 }}
+                      transition={{ duration: 1.5, ease: "easeOut" }}
                       strokeLinecap="round"
                     />
                   </svg>
                   <div className="text-center flex flex-col items-center">
-                    <span className="text-4xl font-light text-gray-900 dark:text-white tracking-tight">{progressData.percentage}%</span>
+                    <motion.span 
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                      className="text-4xl font-light text-gray-900 dark:text-white tracking-tight"
+                    >
+                      {displayPercentage}%
+                    </motion.span>
+                    <span className="text-xs font-medium text-zinc-500 mt-0.5">
+                      {progressData.completed} / {progressData.total}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="h-48 w-full mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={progressData.chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }} />
-                    <Tooltip 
-                      cursor={{ fill: theme === 'dark' ? '#374151' : '#f3f4f6' }}
-                      contentStyle={{ 
-                        borderRadius: '8px', 
-                        border: 'none', 
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                        backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
-                        color: theme === 'dark' ? '#f3f4f6' : '#111827'
-                      }}
-                    />
-                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                      {progressData.chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="grid grid-cols-2 gap-4 mt-8">
+                <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl p-4 flex flex-col items-center justify-center border border-emerald-100 dark:border-emerald-800/30">
+                  <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">{progressData.completed}</span>
+                  <span className="text-sm font-medium text-emerald-800 dark:text-emerald-500/80">Completed</span>
+                </div>
+                <div className="bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl p-4 flex flex-col items-center justify-center border border-indigo-100 dark:border-indigo-800/30">
+                  <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">{progressData.pending}</span>
+                  <span className="text-sm font-medium text-indigo-800 dark:text-indigo-500/80">Pending</span>
+                </div>
               </div>
             </section>
           </div>
