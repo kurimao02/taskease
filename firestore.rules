@@ -63,5 +63,12 @@ service cloud.firestore {
         allow delete: if isAuthenticated() && request.auth.token.email in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
       }
     }
+
+    match /vault_secrets/{secretId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
   }
 }

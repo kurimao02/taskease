@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, CheckSquare, Users, MessageSquare, Bell, User as UserIcon, Menu, X, Sun, Moon, LogOut, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, CheckSquare, Users, MessageSquare, Bell, User as UserIcon, Menu, X, Sun, Moon, LogOut, ClipboardList, Shield } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { useTaskStore } from '@/src/store/useTaskStore';
 import { useThemeStore } from '@/src/store/useThemeStore';
@@ -83,6 +83,7 @@ export function Layout({ user }: LayoutProps) {
     { to: "/completed", icon: CheckSquare, label: "Completed Tasks" },
     { to: "/groups", icon: Users, label: "Groups/Shared" },
     { to: "/friends", icon: MessageSquare, label: "Friends & Chats" },
+    { to: "/vault", icon: Shield, label: "Secure Vault" },
   ];
 
   return (

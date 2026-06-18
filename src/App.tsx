@@ -11,6 +11,7 @@ import { CalendarView } from './pages/CalendarView';
 import { CompletedTasks } from './pages/CompletedTasks';
 import { Groups } from './pages/Groups';
 import { Friends } from './pages/Friends';
+import { SecureVault } from './pages/SecureVault';
 import { Login } from './pages/Login';
 import { useThemeStore } from './store/useThemeStore';
 import { useTaskStore } from './store/useTaskStore';
@@ -263,6 +264,7 @@ export default function App() {
             <Route path="completed" element={<CompletedTasks />} />
             <Route path="groups" element={<Groups />} />
             <Route path="friends" element={<Friends />} />
+            <Route path="vault" element={<SecureVault />} />
           </Route>
         ) : (
           <Route path="*" element={<Login />} />
